@@ -68,6 +68,8 @@ jobs:
 
   # 2. Instalador MSI para Windows (WiX Toolset v4+)
   msi:
+    # Depois do goreleaser: é ele que cria a release onde o MSI é anexado.
+    needs: goreleaser
     runs-on: windows-latest
     steps:
       - name: Checkout do Repositório
@@ -87,7 +89,8 @@ jobs:
           } else {
             $v = "1.1.0"
           }
-          $v = ($v -replace "[^0-9.]", "")
+          $v = (($v -split "-")[0] -replace "[^0-9.]", "")
+          if ($v -match '^\d+\.\d+$') { $v = "$v.0" }   # v1.2-alpha -> 1.2.0 (o MSI exige 3 partes)
           if ($v -notmatch '^\d+\.\d+\.\d+$') { $v = "1.1.0" }
           "valor=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           Write-Host "Versão do MSI: $v"

@@ -30,9 +30,9 @@ Você **não precisa ter o Go instalado** e não precisa de banco de dados ou de
 1. Acesse a página de [Releases](https://github.com/forg3/validador-esocial/releases/tag/v1.2-alpha).
 2. Baixe o pacote correspondente ao seu sistema operacional:
    - **Windows (x86_64):** Extraia o arquivo `.zip` e execute `validador-esocial.exe`.
-   - **macOS Apple Silicon (M1 / M2 / M3 / M4 / M5 / M6+):** Baixe `validador-esocial-v1.2-alpha-darwin-arm64.tar.gz`, extraia e execute `./validador-esocial-darwin-arm64`.
-   - **macOS Intel (x86_64):** Baixe `validador-esocial-v1.2-alpha-darwin-amd64.tar.gz`, extraia e execute `./validador-esocial-darwin-amd64`.
-   - **Linux (x86_64):** Baixe `validador-esocial-v1.2-alpha-linux-amd64.tar.gz`, extraia e execute `./validador-esocial`.
+   - **macOS Apple Silicon (M1 / M2 / M3 / M4 / M5 / M6+):** Baixe `validador-esocial-1.2-alpha-darwin-arm64.tar.gz`, extraia e execute `./validador-esocial-darwin-arm64`.
+   - **macOS Intel (x86_64):** Baixe `validador-esocial-1.2-alpha-darwin-amd64.tar.gz`, extraia e execute `./validador-esocial-darwin-amd64`.
+   - **Linux (x86_64):** Baixe `validador-esocial-1.2-alpha-linux-amd64.tar.gz`, extraia e execute `./validador-esocial`.
 3. O navegador será iniciado automaticamente em `http://localhost:8000`.
 
 ### Modo 2: A Partir do Código-Fonte (Para Desenvolvedores)
@@ -58,10 +58,10 @@ primeira execução (ela fica salva com hash em `dados/auth.json`, permissão `0
 sudo dpkg -i validador-esocial_1.2-alpha_linux_amd64.deb
 
 # Fedora/RHEL/openSUSE (.rpm)
-sudo rpm -i validador-esocial-1.2-alpha.x86_64.rpm
+sudo rpm -i validador-esocial_1.2-alpha_linux_amd64.rpm
 
 # Windows: execute o instalador .msi (cria atalhos no Menu Iniciar e na Área de Trabalho)
-#   validador-esocial-1.2-alpha-windows-amd64.msi
+#   validador-esocial-1.2.0-windows-amd64.msi
 ```
 
 Após instalar, execute `validador-esocial` (o atalho no Windows). O binário é auto-contido: cria o banco SQLite em
