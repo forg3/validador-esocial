@@ -12,12 +12,12 @@ const NamespaceS2220 = "http://www.esocial.gov.br/schema/evt/evtMonit/v_S_01_03_
 
 // Tipos de Exame Ocupacional
 const (
-	ExameAdmissional       = 0
-	ExamePeriodico         = 1
-	ExameRetornoTrabalho   = 2
-	ExameMudancaFuncao     = 3
+	ExameAdmissional        = 0
+	ExamePeriodico          = 1
+	ExameRetornoTrabalho    = 2
+	ExameMudancaFuncao      = 3
 	ExameMonitoracaoPontual = 4
-	ExameDemissional       = 9
+	ExameDemissional        = 9
 )
 
 // Resultados do ASO
@@ -35,35 +35,35 @@ type EventoS2220 struct {
 
 // EvtMonit congrega dados cadastrais, vínculo e o exame médico ocupacional.
 type EvtMonit struct {
-	Id           string        `xml:"Id,attr"`
-	IdeEvento    IdeEventoTrab `xml:"ideEvento"`
+	Id            string        `xml:"Id,attr"`
+	IdeEvento     IdeEventoTrab `xml:"ideEvento"`
 	IdeEmpregador IdeEmpregador `xml:"ideEmpregador"`
-	IdeVinculo   IdeVinculoSST `xml:"ideVinculo"`
-	ExMedOcup    ExMedOcup     `xml:"exMedOcup"`
+	IdeVinculo    IdeVinculoSST `xml:"ideVinculo"`
+	ExMedOcup     ExMedOcup     `xml:"exMedOcup"`
 }
 
 // ExMedOcup detalha o tipo de exame ocupacional, o ASO emitido e o coordenador do PCMSO.
 type ExMedOcup struct {
-	TpExameOcup int         `xml:"tpExameOcup"`           // 0, 1, 2, 3, 4, 9
-	ASO         DadosASO    `xml:"aso"`                   // Atestado de Saúde Ocupacional
-	RespMonit   *RespMonit  `xml:"respMonit,omitempty"`   // Responsável/coordenador do PCMSO
+	TpExameOcup int        `xml:"tpExameOcup"`         // 0, 1, 2, 3, 4, 9
+	ASO         DadosASO   `xml:"aso"`                 // Atestado de Saúde Ocupacional
+	RespMonit   *RespMonit `xml:"respMonit,omitempty"` // Responsável/coordenador do PCMSO
 }
 
 // DadosASO registra a emissão, resultado, exames complementares e o médico emitente do ASO.
 type DadosASO struct {
-	DtAso   string       `xml:"dtAso"`             // AAAA-MM-DD
-	ResAso  *int         `xml:"resAso,omitempty"`  // 1 - Apto, 2 - Inapto
-	Exame   []ExameItem  `xml:"exame,omitempty"`   // Até 99 exames complementares
-	Medico  MedicoASO    `xml:"medico"`            // Médico emitente do ASO
+	DtAso  string      `xml:"dtAso"`            // AAAA-MM-DD
+	ResAso *int        `xml:"resAso,omitempty"` // 1 - Apto, 2 - Inapto
+	Exame  []ExameItem `xml:"exame,omitempty"`  // Até 99 exames complementares
+	Medico MedicoASO   `xml:"medico"`           // Médico emitente do ASO
 }
 
 // ExameItem detalha cada avaliação clínica e exame complementar realizado (Tabela 27 do eSocial).
 type ExameItem struct {
-	DtExm         string `xml:"dtExm"`                   // AAAA-MM-DD
-	ProcRealizado string `xml:"procRealizado"`           // 4 dígitos (Tabela 27)
-	ObsProc       string `xml:"obsProc,omitempty"`       // Observação sobre o procedimento
-	OrdExame      *int   `xml:"ordExame,omitempty"`      // 1 - Inicial, 2 - Sequencial
-	IndResult     *int   `xml:"indResult,omitempty"`     // 1 - Normal, 2 - Alterado, 3 - Estável, 4 - Agravamento
+	DtExm         string `xml:"dtExm"`               // AAAA-MM-DD
+	ProcRealizado string `xml:"procRealizado"`       // 4 dígitos (Tabela 27)
+	ObsProc       string `xml:"obsProc,omitempty"`   // Observação sobre o procedimento
+	OrdExame      *int   `xml:"ordExame,omitempty"`  // 1 - Inicial, 2 - Sequencial
+	IndResult     *int   `xml:"indResult,omitempty"` // 1 - Normal, 2 - Alterado, 3 - Estável, 4 - Agravamento
 }
 
 // MedicoASO identifica o médico do trabalho ou examinador emitente do ASO.

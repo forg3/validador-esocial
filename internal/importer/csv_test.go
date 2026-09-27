@@ -25,8 +25,8 @@ func TestValidarCPF(t *testing.T) {
 		{"11111111111", false},
 		{"00000000000", false},
 		{"99999999999", false},
-		{"12345678900", false}, // Dígito verificador errado
-		{"123456789", false},   // Curto
+		{"12345678900", false},  // Dígito verificador errado
+		{"123456789", false},    // Curto
 		{"123456789012", false}, // Longo
 		{"abc12345678", false},
 		{"", false},

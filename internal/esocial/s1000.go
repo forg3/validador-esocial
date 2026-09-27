@@ -16,9 +16,9 @@ type EventoS1000 struct {
 
 // EvtInfoEmpregador contém o identificador e os dados cadastrais do empregador.
 type EvtInfoEmpregador struct {
-	Id             string             `xml:"Id,attr"`
-	IdeEvento      IdeEventoTab       `xml:"ideEvento"`
-	IdeEmpregador  IdeEmpregador      `xml:"ideEmpregador"`
+	Id             string              `xml:"Id,attr"`
+	IdeEvento      IdeEventoTab        `xml:"ideEvento"`
+	IdeEmpregador  IdeEmpregador       `xml:"ideEmpregador"`
 	InfoEmpregador InfoEmpregadorS1000 `xml:"infoEmpregador"`
 }
 
@@ -31,15 +31,15 @@ type InfoEmpregadorS1000 struct {
 
 // InclusaoS1000 detalha a inclusão inicial de dados cadastrais no eSocial.
 type InclusaoS1000 struct {
-	IdePeriodo   IdePeriodo         `xml:"idePeriodo"`
-	InfoCadastro InfoCadastroS1000   `xml:"infoCadastro"`
+	IdePeriodo   IdePeriodo        `xml:"idePeriodo"`
+	InfoCadastro InfoCadastroS1000 `xml:"infoCadastro"`
 }
 
 // AlteracaoS1000 detalha a alteração de dados cadastrais e eventual nova validade.
 type AlteracaoS1000 struct {
 	IdePeriodo   IdePeriodo        `xml:"idePeriodo"`
-	InfoCadastro InfoCadastroS1000  `xml:"infoCadastro"`
-	NovaValidade *IdePeriodo        `xml:"novaValidade,omitempty"`
+	InfoCadastro InfoCadastroS1000 `xml:"infoCadastro"`
+	NovaValidade *IdePeriodo       `xml:"novaValidade,omitempty"`
 }
 
 // ExclusaoS1000 detalha a exclusão de um período de validade do cadastro.
@@ -55,15 +55,15 @@ type IdePeriodo struct {
 
 // InfoCadastroS1000 engloba as definições tributárias, porte e regras de escrituração da empresa.
 type InfoCadastroS1000 struct {
-	ClassTrib           string                `xml:"classTrib"` // Tabela 08 (ex: "01", "02", "03", "99")
-	IndCoop             *int                  `xml:"indCoop,omitempty"` // 0=Não é, 1=Trabalho, 2=Produção, 3=Outras
-	IndConstr           *int                  `xml:"indConstr,omitempty"` // 0=Não é, 1=Construtora
-	IndDesFolha         int                   `xml:"indDesFolha"` // 0=Não aplicável, 1=Desonerada Lei 12.546/2011, 2=Município
-	IndOpcCP            *int                  `xml:"indOpcCP,omitempty"` // 1=Comercialização, 2=Folha de pagamento
-	IndPorte            string                `xml:"indPorte,omitempty"` // S=ME/EPP, N=Demais
-	IndOptRegEletron    int                   `xml:"indOptRegEletron"` // 0=Não optou, 1=Optou pelo registro eletrônico de empregados
-	CnpjEFR             string                `xml:"cnpjEFR,omitempty"` // CNPJ do Ente Federativo Responsável
-	DadosIsencao        *DadosIsencaoS1000    `xml:"dadosIsencao,omitempty"`
+	ClassTrib            string                `xml:"classTrib"`           // Tabela 08 (ex: "01", "02", "03", "99")
+	IndCoop              *int                  `xml:"indCoop,omitempty"`   // 0=Não é, 1=Trabalho, 2=Produção, 3=Outras
+	IndConstr            *int                  `xml:"indConstr,omitempty"` // 0=Não é, 1=Construtora
+	IndDesFolha          int                   `xml:"indDesFolha"`         // 0=Não aplicável, 1=Desonerada Lei 12.546/2011, 2=Município
+	IndOpcCP             *int                  `xml:"indOpcCP,omitempty"`  // 1=Comercialização, 2=Folha de pagamento
+	IndPorte             string                `xml:"indPorte,omitempty"`  // S=ME/EPP, N=Demais
+	IndOptRegEletron     int                   `xml:"indOptRegEletron"`    // 0=Não optou, 1=Optou pelo registro eletrônico de empregados
+	CnpjEFR              string                `xml:"cnpjEFR,omitempty"`   // CNPJ do Ente Federativo Responsável
+	DadosIsencao         *DadosIsencaoS1000    `xml:"dadosIsencao,omitempty"`
 	InfoOrgInternacional *InfoOrgInternacional `xml:"infoOrgInternacional,omitempty"`
 }
 

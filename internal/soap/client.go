@@ -18,7 +18,7 @@ import (
 
 // Ambientes suportados pelo eSocial
 const (
-	AmbienteProducao        = 1
+	AmbienteProducao         = 1
 	AmbienteProducaoRestrita = 2 // Homologação
 )
 
@@ -77,9 +77,9 @@ type RespostaConsultaLote struct {
 
 // ClienteSOAP gerencia as requisições HTTPS mTLS com o eSocial.
 type ClienteSOAP struct {
-	cert                    crypto.Certificado
-	httpClient              *http.Client
-	urlEnvioPersonalizada   string
+	cert                     crypto.Certificado
+	httpClient               *http.Client
+	urlEnvioPersonalizada    string
 	urlConsultaPersonalizada string
 }
 
@@ -471,4 +471,3 @@ func extrairRecibosEventosXML(xmlStr string) []ReciboEvento {
 
 	return recibos
 }
-

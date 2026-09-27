@@ -15,7 +15,7 @@ import (
 type ColaboradorImportado struct {
 	Linha        int    `json:"linha"`
 	Nome         string `json:"nome"`
-	CPF          string `json:"cpf"`           // Apenas dígitos
+	CPF          string `json:"cpf"` // Apenas dígitos
 	Matricula    string `json:"matricula"`
 	Cargo        string `json:"cargo"`
 	CBO          string `json:"cbo"`

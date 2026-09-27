@@ -13,15 +13,15 @@ const (
 	VersaoAplicativo = "EmissorLivre-1.0"
 
 	// Ambientes eSocial
-	AmbienteProducao        = 1
+	AmbienteProducao         = 1
 	AmbienteProducaoRestrita = 2
 
 	// Processo de Emissão
 	ProcEmiAppEmpregador = 1 // 1 - Aplicativo do empregador
 
 	// Tipos de Inscrição
-	TpInscCNPJ = 1
-	TpInscCPF  = 2
+	TpInscCNPJ  = 1
+	TpInscCPF   = 2
 	TpInscCAEPF = 3
 	TpInscCNO   = 4
 )

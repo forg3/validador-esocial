@@ -1448,4 +1448,3 @@ func FiltrarCatalogo(grupo, busca string) []EventoCatalogo {
 	}
 	return res
 }
-

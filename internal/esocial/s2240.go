@@ -16,22 +16,22 @@ type EventoS2240 struct {
 
 // EvtExpRisco agrupa os blocos de identificação e informações de exposição ao risco ambiental.
 type EvtExpRisco struct {
-	Id           string        `xml:"Id,attr"`
-	IdeEvento    IdeEventoTrab `xml:"ideEvento"`
+	Id            string        `xml:"Id,attr"`
+	IdeEvento     IdeEventoTrab `xml:"ideEvento"`
 	IdeEmpregador IdeEmpregador `xml:"ideEmpregador"`
-	IdeVinculo   IdeVinculoSST `xml:"ideVinculo"`
-	InfoExpRisco InfoExpRisco  `xml:"infoExpRisco"`
+	IdeVinculo    IdeVinculoSST `xml:"ideVinculo"`
+	InfoExpRisco  InfoExpRisco  `xml:"infoExpRisco"`
 }
 
 // InfoExpRisco detalha datas, ambientes, atividades, agentes nocivos e responsáveis pelos registros.
 type InfoExpRisco struct {
-	DtIniCondicao string      `xml:"dtIniCondicao"` // AAAA-MM-DD
-	DtFimCondicao string      `xml:"dtFimCondicao,omitempty"` // Opcional (obrigatório avulso)
-	InfoAmb       []InfoAmb   `xml:"infoAmb"`                 // 1 a 9 ambientes
-	InfoAtiv      InfoAtiv    `xml:"infoAtiv"`                // Atividades exercidas
-	AgNoc         []AgNoc     `xml:"agNoc"`                   // 1 a 999 agentes nocivos
-	RespReg       []RespReg   `xml:"respReg"`                 // 1 a 99 responsáveis técnicos
-	Obs           *ObsS2240   `xml:"obs,omitempty"`           // Observações complementares
+	DtIniCondicao string    `xml:"dtIniCondicao"`           // AAAA-MM-DD
+	DtFimCondicao string    `xml:"dtFimCondicao,omitempty"` // Opcional (obrigatório avulso)
+	InfoAmb       []InfoAmb `xml:"infoAmb"`                 // 1 a 9 ambientes
+	InfoAtiv      InfoAtiv  `xml:"infoAtiv"`                // Atividades exercidas
+	AgNoc         []AgNoc   `xml:"agNoc"`                   // 1 a 999 agentes nocivos
+	RespReg       []RespReg `xml:"respReg"`                 // 1 a 99 responsáveis técnicos
+	Obs           *ObsS2240 `xml:"obs,omitempty"`           // Observações complementares
 }
 
 // InfoAmb representa o local físico/administrativo onde o colaborador trabalha.
@@ -49,25 +49,25 @@ type InfoAtiv struct {
 
 // AgNoc representa um agente nocivo ao qual o trabalhador está exposto (Tabela 24 do eSocial).
 type AgNoc struct {
-	CodAgNoc   string   `xml:"codAgNoc"`             // Tabela 24: "09.01.001" (ausência) ou código com pontos
-	DscAgNoc   string   `xml:"dscAgNoc,omitempty"`   // Obrigatório para certos códigos genéricos
-	TpAval     *int     `xml:"tpAval,omitempty"`     // 1 - Quantitativo, 2 - Qualitativo (obrigatório se diferente de 09.01.001)
-	IntConc    string   `xml:"intConc,omitempty"`    // Intensidade ou concentração (se tpAval=1)
-	LimTol     string   `xml:"limTol,omitempty"`     // Limite de tolerância (se aplicável)
-	UnMed      *int     `xml:"unMed,omitempty"`      // Unidade de medida (1..30)
-	TecMedicao string   `xml:"tecMedicao,omitempty"` // Técnica utilizada na medição
-	NrProcJud  string   `xml:"nrProcJud,omitempty"`  // Processo judicial
-	EpcEpi     *EpcEpi  `xml:"epcEpi,omitempty"`     // Informações de EPC e EPI
+	CodAgNoc   string  `xml:"codAgNoc"`             // Tabela 24: "09.01.001" (ausência) ou código com pontos
+	DscAgNoc   string  `xml:"dscAgNoc,omitempty"`   // Obrigatório para certos códigos genéricos
+	TpAval     *int    `xml:"tpAval,omitempty"`     // 1 - Quantitativo, 2 - Qualitativo (obrigatório se diferente de 09.01.001)
+	IntConc    string  `xml:"intConc,omitempty"`    // Intensidade ou concentração (se tpAval=1)
+	LimTol     string  `xml:"limTol,omitempty"`     // Limite de tolerância (se aplicável)
+	UnMed      *int    `xml:"unMed,omitempty"`      // Unidade de medida (1..30)
+	TecMedicao string  `xml:"tecMedicao,omitempty"` // Técnica utilizada na medição
+	NrProcJud  string  `xml:"nrProcJud,omitempty"`  // Processo judicial
+	EpcEpi     *EpcEpi `xml:"epcEpi,omitempty"`     // Informações de EPC e EPI
 }
 
 // EpcEpi detalha medidas de proteção coletiva e individual.
 type EpcEpi struct {
-	UtilizEPC int       `xml:"utilizEPC"`           // 0 - Não se aplica, 1 - Não implementa, 2 - Implementa
-	EficEpc   string    `xml:"eficEpc,omitempty"`   // S, N (obrigatório se utilizEPC=2)
-	UtilizEPI int       `xml:"utilizEPI"`           // 0 - Não se aplica, 1 - Não utilizado, 2 - Utilizado
-	EficEpi   string    `xml:"eficEpi,omitempty"`   // S, N (obrigatório se utilizEPI=2)
-	Epi       []EpiItem `xml:"epi,omitempty"`       // Lista de EPIs com Certificado de Aprovação (CA)
-	EpiCompl  *EpiCompl `xml:"epiCompl,omitempty"`  // Requisitos NR-06 / NR-09
+	UtilizEPC int       `xml:"utilizEPC"`          // 0 - Não se aplica, 1 - Não implementa, 2 - Implementa
+	EficEpc   string    `xml:"eficEpc,omitempty"`  // S, N (obrigatório se utilizEPC=2)
+	UtilizEPI int       `xml:"utilizEPI"`          // 0 - Não se aplica, 1 - Não utilizado, 2 - Utilizado
+	EficEpi   string    `xml:"eficEpi,omitempty"`  // S, N (obrigatório se utilizEPI=2)
+	Epi       []EpiItem `xml:"epi,omitempty"`      // Lista de EPIs com Certificado de Aprovação (CA)
+	EpiCompl  *EpiCompl `xml:"epiCompl,omitempty"` // Requisitos NR-06 / NR-09
 }
 
 // EpiItem identifica o EPI pelo Certificado de Aprovação (CA).
@@ -87,11 +87,11 @@ type EpiCompl struct {
 
 // RespReg identifica o médico ou engenheiro de segurança responsável pelos registros ambientais.
 type RespReg struct {
-	CpfResp string `xml:"cpfResp"`           // CPF do responsável técnico
-	IdeOC   *int   `xml:"ideOC,omitempty"`   // 1 - CRM, 4 - CREA, 9 - Outros
-	DscOC   string `xml:"dscOC,omitempty"`   // Sigla caso ideOC=9
-	NrOC    string `xml:"nrOC,omitempty"`    // Número do registro no conselho de classe
-	UfOC    string `xml:"ufOC,omitempty"`    // Sigla da UF do órgão de classe
+	CpfResp string `xml:"cpfResp"`         // CPF do responsável técnico
+	IdeOC   *int   `xml:"ideOC,omitempty"` // 1 - CRM, 4 - CREA, 9 - Outros
+	DscOC   string `xml:"dscOC,omitempty"` // Sigla caso ideOC=9
+	NrOC    string `xml:"nrOC,omitempty"`  // Número do registro no conselho de classe
+	UfOC    string `xml:"ufOC,omitempty"`  // Sigla da UF do órgão de classe
 }
 
 // ObsS2240 contém anotações adicionais relativas aos registros ambientais.

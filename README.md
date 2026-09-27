@@ -7,7 +7,7 @@
 [![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue.svg)](LICENSE)
 [![FOSS](https://img.shields.io/badge/FOSS-Free%20%26%20Open%20Source-green.svg)](https://en.wikipedia.org/wiki/Free_and_open-source_software)
 [![Open Source](https://img.shields.io/badge/Open%20Source-%E2%99%A5-orange.svg)](https://opensource.org/)
-[![Go](https://img.shields.io/badge/Go-1.22+-00ADD8.svg?logo=go&logoColor=white)](https://golang.org/)
+[![Go](https://img.shields.io/badge/Go-1.26+-00ADD8.svg?logo=go&logoColor=white)](https://golang.org/)
 [![HTMX](https://img.shields.io/badge/HTMX-2.0+-336699.svg)](https://htmx.org/)
 [![eSocial](https://img.shields.io/badge/eSocial-Leiaute%20S--1.3-005CA9.svg)](https://www.gov.br/esocial/pt-br/documentacao-tecnica)
 
@@ -27,12 +27,12 @@ O **Validador eSocial** é uma aplicação web autônoma e portátil desenvolvid
 
 Você **não precisa ter o Go instalado** e não precisa de banco de dados ou dependências externas. O aplicativo é distribuído como um binário nativo único e auto-contido. Ao ser iniciado, **abre automaticamente o seu navegador** no painel local:
 
-1. Acesse a página de [Releases](https://github.com/forg3/validador-esocial/releases/tag/v1.1.1-alpha).
+1. Acesse a página de [Releases](https://github.com/forg3/validador-esocial/releases/tag/v1.2-alpha).
 2. Baixe o pacote correspondente ao seu sistema operacional:
    - **Windows (x86_64):** Extraia o arquivo `.zip` e execute `validador-esocial.exe`.
-   - **macOS Apple Silicon (M1 / M2 / M3 / M4 / M5 / M6+):** Baixe `validador-esocial-v1.1.1-alpha-darwin-arm64.tar.gz`, extraia e execute `./validador-esocial-darwin-arm64`.
-   - **macOS Intel (x86_64):** Baixe `validador-esocial-v1.1.1-alpha-darwin-amd64.tar.gz`, extraia e execute `./validador-esocial-darwin-amd64`.
-   - **Linux (x86_64):** Baixe `validador-esocial-v1.1.1-alpha-linux-amd64.tar.gz`, extraia e execute `./validador-esocial`.
+   - **macOS Apple Silicon (M1 / M2 / M3 / M4 / M5 / M6+):** Baixe `validador-esocial-v1.2-alpha-darwin-arm64.tar.gz`, extraia e execute `./validador-esocial-darwin-arm64`.
+   - **macOS Intel (x86_64):** Baixe `validador-esocial-v1.2-alpha-darwin-amd64.tar.gz`, extraia e execute `./validador-esocial-darwin-amd64`.
+   - **Linux (x86_64):** Baixe `validador-esocial-v1.2-alpha-linux-amd64.tar.gz`, extraia e execute `./validador-esocial`.
 3. O navegador será iniciado automaticamente em `http://localhost:8000`.
 
 ### Modo 2: A Partir do Código-Fonte (Para Desenvolvedores)
@@ -55,13 +55,13 @@ primeira execução (ela fica salva com hash em `dados/auth.json`, permissão `0
 
 ```bash
 # Debian/Ubuntu (.deb)
-sudo dpkg -i validador-esocial_1.1.1-alpha_linux_amd64.deb
+sudo dpkg -i validador-esocial_1.2-alpha_linux_amd64.deb
 
 # Fedora/RHEL/openSUSE (.rpm)
-sudo rpm -i validador-esocial-1.1.1-alpha.x86_64.rpm
+sudo rpm -i validador-esocial-1.2-alpha.x86_64.rpm
 
 # Windows: execute o instalador .msi (cria atalhos no Menu Iniciar e na Área de Trabalho)
-#   validador-esocial-1.1.1-alpha-windows-amd64.msi
+#   validador-esocial-1.2-alpha-windows-amd64.msi
 ```
 
 Após instalar, execute `validador-esocial` (o atalho no Windows). O binário é auto-contido: cria o banco SQLite em
@@ -95,6 +95,16 @@ A aplicação escuta **somente em `127.0.0.1` por padrão**. Todas as rotas exig
 (cookie `HttpOnly` + `SameSite=Strict`), requisições de escrita exigem token anti-CSRF, o cabeçalho `Host`
 é validado contra a allowlist local (anti DNS rebinding), há limite de tamanho para uploads e rate limit
 nas tentativas de login e de validação da senha do certificado.
+
+---
+
+## Pente fino e pentest (v1.2-alpha)
+
+Revisão de todo o código com `go vet`, `staticcheck`, `gosec` e `govulncheck`, e teste dinâmico da instância
+rodando (acesso sem login, `Host` forjado, força bruta, CSRF, XXE, "billion laughs"): tudo bloqueado. Achados
+corrigidos: assinatura A1 real pela interface, ASO importado validado, evento rejeitado não é assinado, tabelas
+13/14/15/17/27 completas, nome fixo para o certificado enviado, `xmllint --nonet` e código formatado com `gofmt`.
+Relatório: [`docs/security-audit/pente-fino-2026-09-26.md`](docs/security-audit/pente-fino-2026-09-26.md).
 
 ---
 
@@ -136,8 +146,8 @@ IDOR, segredos expostos e XSS) com **todos os achados corrigidos** — o relató
 
 ## Versão e Releases
 
-**Versão Atual:** `v1.1.1-alpha` (Release com **correções de segurança**, **leiautes S-1.3 aderentes ao XSD oficial**, **relatórios de auditoria de retorno**, **múltiplos certificados/procurações** e **transmissão real opcional** ao webservice oficial, para testes de conformidade com Leiaute S-1.3 NT 07/2026).  
-Download dos binários pré-compilados portáteis para Linux, Windows e macOS na aba [Releases](https://github.com/forg3/validador-esocial/releases/tag/v1.1.1-alpha).
+**Versão Atual:** `v1.2-alpha` (Release com **assinatura A1 real pela interface**, **tabelas oficiais completas**, **correções de segurança**, **leiautes S-1.3 aderentes ao XSD oficial**, **relatórios de auditoria de retorno**, **múltiplos certificados/procurações** e **transmissão real opcional** ao webservice oficial, para testes de conformidade com Leiaute S-1.3 NT 07/2026).  
+Download dos binários pré-compilados portáteis para Linux, Windows e macOS na aba [Releases](https://github.com/forg3/validador-esocial/releases/tag/v1.2-alpha).
 
 ---
 
@@ -145,10 +155,9 @@ Download dos binários pré-compilados portáteis para Linux, Windows e macOS na
 
 - **Cobertura Integral dos 36 Eventos Oficiais**: Catálogo visual estruturado por departamento (SESMT, Medicina Ocupacional, RH/DP, Folha, Jurídico e RPPS) e editor guiado com sincronização em tempo real com o XML S-1.3.
 - **Validação Estrutural Rígida**: Confere os arquivos XML diretamente contra os esquemas XSD oficiais do leiaute S-1.3 (via `xmllint`, com modo degradado explicitamente informado quando a ferramenta não está instalada). Os documentos gerados pelos editores de **S-2210, S-2220 e S-2240 são aprovados pelo schema oficial** — verificado por teste automatizado que executa o `xmllint` contra os XSD embutidos.
-- **Importação e Conferência de XML/CSV**: Recebe arquivos XML (como ASO) e realiza importação de colaboradores em lote via CSV com modelo pronto para download.
-- **Tabelas oficiais do eSocial embutidas**: Tabela 13 (parte do corpo atingida), Tabela 14 (agente causador), Tabela 15 (situação geradora), Tabela 17 (natureza da lesão), Tabela 24 (agentes nocivos) e Tabela 27 (procedimentos diagnósticos), disponíveis como listas nos formulários — sem digitação de códigos.
-- **Assinatura Digital Local (A1)**: Assina eventos utilizando certificado digital ICP-Brasil **A1** (`.pfx` / `.p12`) diretamente na máquina do usuário (`internal/crypto`, XMLDSig + C14N). O fluxo de demonstração gera um envelope **explicitamente marcado como simulado** (`ASSINATURA SIMULADA`), sem validade jurídica.
-- **Transmissão ao eSocial (em integração)**: o cliente mTLS dos web services oficiais (`internal/soap`, TLS 1.2+, certificado A1) está implementado, mas **ainda não conectado à interface**. Nesta versão o envio é apenas simulado, sem protocolo e sem recibo.
+- **Importação e Conferência de XML/CSV**: Recebe arquivos XML (como ASO), valida contra o XSD na entrada (o que não passa entra como **rejeitado**, com o motivo) e realiza importação de colaboradores em lote via CSV com modelo pronto para download.
+- **Tabelas oficiais do eSocial embutidas e completas** (leiaute S-1.3, NT 07/2026): Tabela 13 (parte do corpo atingida, 45 itens), Tabela 14 (agente causador, 248), Tabela 15 (situação geradora, 60), Tabela 17 (natureza da lesão, 29), Tabela 24 (agentes nocivos) e Tabela 27 (procedimentos diagnósticos, 1.450), disponíveis como listas nos formulários — sem digitação de códigos.
+- **Assinatura Digital Local (A1)**: Assina eventos com certificado digital ICP-Brasil **A1** (`.pfx` / `.p12`) diretamente na máquina do usuário (`internal/crypto`, XMLDSig + C14N). Pela fila, a assinatura é **real quando a senha do certificado é informada** (avulsa ou em lote); sem senha, o envelope é **explicitamente marcado como simulado** (`ASSINATURA SIMULADA`), sem validade jurídica. Evento rejeitado ou não validado nunca é assinado: toda assinatura revalida o XML antes.
 - **Auditoria de Eventos**: Rastreamento do ciclo de vida (`pronto` → `assinado` → `simulado` → `transmitido` → `aceito`/`rejeitado`), com registro de recibo e mensagens oficiais.
 - **Relatórios e Auditoria de Retorno (S-5001/S-5011)**: importação dos totalizadores devolvidos pelo eSocial, consolidação por período (previdenciário, FGTS e IRRF), memórias de cálculo por trabalhador e exportação em CSV.
 - **Múltiplas Empresas e Procurações**: perfis por CNPJ com certificado A1 próprio, dados do procurador eletrônico e ativação com sincronização automática do empregador emissor.
@@ -156,9 +165,11 @@ Download dos binários pré-compilados portáteis para Linux, Windows e macOS na
 
 ---
 
+- [x] **Pente fino e pentest (v1.2-alpha)**: assinatura A1 real pela fila, validação na importação, tabelas 13/14/15/17/27 completas e relatório em `docs/security-audit/pente-fino-2026-09-26.md`.
+- [ ] **Teste com certificado A1 real em Produção Restrita**: aguarda a compra do e-CNPJ.
 - [x] **Leiautes S-1.3 aderentes ao XSD oficial (Sprint 1)**: geradores de S-2210, S-2220 e S-2240 reescritos conforme o leiaute oficial, com tabelas 13/14/15/17/27 embutidas e validação por schema aprovada nos testes de regressão.
 - [x] **Auditoria de Segurança e Hardening (v1.1-alpha)**: autenticação obrigatória, anti-CSRF, validação de Host, limites de entrada, rate limit, cabeçalhos de segurança e relatório de auditoria publicado em `docs/security-audit/`.
-- [x] **Publicação de Packages (GitHub Packages)**: Imagem de container publicada no GitHub Container Registry (`ghcr.io/forg3/validador-esocial:v1.1.1-alpha`).
+- [x] **Publicação de Packages (GitHub Packages)**: Imagem de container publicada no GitHub Container Registry (`ghcr.io/forg3/validador-esocial:v1.2-alpha`).
 - [x] **Pacotes de Distribuição (.deb, .rpm e MSI)**: instaladores nativos gerados pelo pipeline de release (GoReleaser para `.deb`/`.rpm`/`.tar.gz`/`.zip` e WiX Toolset para o `.msi` do Windows).
 - [x] **Pipeline de CI/CD para Releases**: workflow `release.yml` executa build, `go vet`, testes, compilação cruzada (linux/darwin/windows em amd64 e arm64), pacotes `.deb`/`.rpm`, instalador `.msi`, checksums SHA-256 e publicação automática na release — além da imagem de container no GHCR.
 - [~] **Suporte a Certificados A3 (Tokens USB e Smartcards via PKCS#11)**: implementado e habilitável por build

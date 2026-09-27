@@ -38,9 +38,10 @@ Escopo: todo o código (local = GitHub, commit `202de28`), testes, análise est�
 
 ## Pendente
 
-- `gofmt`: 9 arquivos antigos fora do padrão de formatação (sem efeito de segurança).
 - Testar a assinatura e a transmissão com **certificado A1 de verdade** em produção restrita
   quando o e-CNPJ for comprado.
+
+`gofmt` aplicado nos 9 arquivos antigos que estavam fora do padrão (27/09/2026, v1.2-alpha).
 
 ## Testes novos
 

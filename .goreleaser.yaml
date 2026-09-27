@@ -44,7 +44,8 @@ archives:
     files:
       - README.md
       - LICENSE
-      - RELEASE_NOTES_v1.1.1-alpha.md
+      - RELEASE_NOTES_v1.2-alpha.md
+      - docs/security-audit/pente-fino-2026-09-26.md
       - docs/security-audit/relatorio-auditoria-seguranca.pdf
 
 checksum:
@@ -93,7 +94,9 @@ release:
   footer: |
     ---
     Relatório de auditoria de segurança: `docs/security-audit/relatorio-auditoria-seguranca.pdf`.
-    A transmissão ao eSocial permanece **simulada** nesta versão (nenhum dado é enviado ao governo).
+    Pente fino e pentest de 26/09/2026: `docs/security-audit/pente-fino-2026-09-26.md`.
+    A transmissão ao eSocial é **simulada por padrão**; o modo Real é opcional e ainda não foi
+    testado com certificado de verdade em Produção Restrita.
 
 changelog:
   sort: asc
