@@ -34,12 +34,17 @@ var (
 // - Transforms: Enveloped Signature e C14N
 // - SignatureMethod RSA-SHA256 (http://www.w3.org/2001/04/xmldsig-more#rsa-sha256)
 // - Inserção de <Signature> dentro de <eSocial> após a tag do evento
+// reAssinaturaXML casa um bloco <Signature>…</Signature> com ou sem prefixo de namespace.
+var reAssinaturaXML = regexp.MustCompile(`(?s)<(?:\w+:)?Signature[\s>].*?</(?:\w+:)?Signature>`)
+
 func AssinarXML(xmlBytes []byte, cert Certificado) ([]byte, error) {
 	if cert == nil || cert.ChavePrivada() == nil || cert.CertificadoFolha() == nil {
 		return nil, ErrCertificadoInvalidoParaAssinatura
 	}
 
-	// 1. Constrói o DOM do XML original
+	// 1. Constrói o DOM do XML original, sem assinatura anterior: o resumo é do documento inteiro,
+	// então uma <Signature> antiga entraria no cálculo (reassinatura).
+	xmlBytes = reAssinaturaXML.ReplaceAll(xmlBytes, nil)
 	root, err := parseXMLToDOM(xmlBytes)
 	if err != nil {
 		return nil, fmt.Errorf("falha ao analisar documento XML para assinatura: %w", err)
@@ -56,22 +61,24 @@ func AssinarXML(xmlBytes []byte, cert Certificado) ([]byte, error) {
 		return nil, ErrElementoAssinavelNaoEncontrado
 	}
 
-	// 3. Canonicalização C14N do elemento do evento assinado (com herança de namespaces do pai)
-	eventoC14N, err := CanonicalizarC14N(eventoNode, true)
+	// 3. Canonicalização C14N do documento inteiro (<eSocial>). O eSocial exige Reference URI="" —
+	// assinatura sobre todo o documento, com a transformação enveloped; com URI="#Id" o evento volta
+	// com a ocorrência 142 "Assinatura do evento inválida" (produção restrita, 28/09/2026).
+	documentoC14N, err := CanonicalizarC14N(root, false)
 	if err != nil {
-		return nil, fmt.Errorf("falha ao canonicalizar evento: %w", err)
+		return nil, fmt.Errorf("falha ao canonicalizar o documento: %w", err)
 	}
 
-	// 4. Digest SHA-256 do elemento canonicalizado
-	hashEvento := sha256.Sum256(eventoC14N)
+	// 4. Digest SHA-256 do documento canonicalizado
+	hashEvento := sha256.Sum256(documentoC14N)
 	digestValue := base64.StdEncoding.EncodeToString(hashEvento[:])
 
-	// 5. Monta o bloco <SignedInfo> com o URI #Id e o DigestValue
+	// 5. Monta o bloco <SignedInfo> com URI vazia (documento inteiro) e o DigestValue
 	signedInfoRaw := fmt.Sprintf(
 		`<SignedInfo xmlns="%s">`+
 			`<CanonicalizationMethod Algorithm="%s"></CanonicalizationMethod>`+
 			`<SignatureMethod Algorithm="%s"></SignatureMethod>`+
-			`<Reference URI="#%s">`+
+			`<Reference URI="">`+
 			`<Transforms>`+
 			`<Transform Algorithm="%s"></Transform>`+
 			`<Transform Algorithm="%s"></Transform>`+
@@ -83,7 +90,6 @@ func AssinarXML(xmlBytes []byte, cert Certificado) ([]byte, error) {
 		NamespaceXMLDSig,
 		CanonicalizationMethodC14N,
 		SignatureMethodRSASHA256,
-		idValor,
 		TransformEnveloped,
 		TransformC14N,
 		DigestMethodSHA256,
@@ -118,7 +124,7 @@ func AssinarXML(xmlBytes []byte, cert Certificado) ([]byte, error) {
 			`<SignedInfo>`+
 			`<CanonicalizationMethod Algorithm="%s"/>`+
 			`<SignatureMethod Algorithm="%s"/>`+
-			`<Reference URI="#%s">`+
+			`<Reference URI="">`+
 			`<Transforms>`+
 			`<Transform Algorithm="%s"/>`+
 			`<Transform Algorithm="%s"/>`+
@@ -137,7 +143,6 @@ func AssinarXML(xmlBytes []byte, cert Certificado) ([]byte, error) {
 		NamespaceXMLDSig,
 		CanonicalizationMethodC14N,
 		SignatureMethodRSASHA256,
-		idValor,
 		TransformEnveloped,
 		TransformC14N,
 		DigestMethodSHA256,
@@ -222,10 +227,7 @@ func ValidarAssinaturaXML(xmlBytes []byte) error {
 			break
 		}
 	}
-	if uri == "" {
-		return errors.New("atributo URI ausente em <Reference>")
-	}
-	idAlvo := strings.TrimPrefix(uri, "#")
+	idAlvo := strings.TrimPrefix(uri, "#") // vazio = documento inteiro (padrão do eSocial)
 
 	// Extrai DigestValue esperado
 	digestNode := refNode.LocalizarElementoPorTag("DigestValue")
@@ -271,14 +273,23 @@ func ValidarAssinaturaXML(xmlBytes []byte) error {
 		return errors.New("a chave pública contida no certificado não é RSA")
 	}
 
-	// Localiza o elemento alvo referenciado pelo Id
-	alvoNode := root.LocalizarElementoPorID(idAlvo)
-	if alvoNode == nil {
-		return fmt.Errorf("elemento assinado com Id '%s' não encontrado", idAlvo)
+	// Localiza o que foi assinado: URI vazia = documento inteiro sem a própria <Signature>
+	// (transformação enveloped); "#Id" = o elemento com esse Id (formato antigo, ainda aceito).
+	var alvoC14N []byte
+	if idAlvo == "" {
+		semAssinatura := reAssinaturaXML.ReplaceAll(xmlBytes, nil)
+		docSemAssinatura, errDoc := parseXMLToDOM(semAssinatura)
+		if errDoc != nil {
+			return fmt.Errorf("falha ao analisar o documento sem a assinatura: %w", errDoc)
+		}
+		alvoC14N, err = CanonicalizarC14N(docSemAssinatura, false)
+	} else {
+		alvoNode := root.LocalizarElementoPorID(idAlvo)
+		if alvoNode == nil {
+			return fmt.Errorf("elemento assinado com Id '%s' não encontrado", idAlvo)
+		}
+		alvoC14N, err = CanonicalizarC14N(alvoNode, true)
 	}
-
-	// Canonicaliza o elemento assinado com C14N
-	alvoC14N, err := CanonicalizarC14N(alvoNode, true)
 	if err != nil {
 		return fmt.Errorf("falha ao canonicalizar elemento assinado: %w", err)
 	}

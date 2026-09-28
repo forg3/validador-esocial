@@ -26,6 +26,22 @@ func LimparDocumento(doc string) string {
 	return sb.String()
 }
 
+// InscricaoDoID devolve as 14 posições do número de inscrição no Id do evento, pela regra do eSocial:
+// completar com zeros À DIREITA. CNPJ entra pela raiz (8 dígitos, a mesma do ideEmpregador/nrInsc
+// do S-1000 e do lote) + "000000"; CPF entra com os 11 dígitos + "000". Zeros à esquerda fazem o
+// eSocial recusar o lote com a ocorrência 609 "Código inválido" em evento/@Id (produção restrita,
+// 28/09/2026).
+func InscricaoDoID(tpInsc int, nrInsc string) string {
+	doc := LimparDocumento(nrInsc)
+	if tpInsc != TpInscCPF && len(doc) > 8 {
+		doc = doc[:8] // CNPJ: só a raiz
+	}
+	if len(doc) > 14 {
+		doc = doc[:14]
+	}
+	return doc + strings.Repeat("0", 14-len(doc))
+}
+
 // GerarIDEvento gera o identificador único obrigatório do evento eSocial (36 caracteres)
 // utilizando o timestamp atual UTC/Local:
 // Formato: ID + tpInsc (1 dígito) + nrInsc (14 dígitos) + YYYYMMDDHHMMSS (14 dígitos) + sequencial (5 dígitos)
@@ -41,12 +57,7 @@ func GerarIDEventoComTempo(tpInsc int, nrInsc string, t time.Time, sequencial in
 		tpInsc = 1 // Padrão CNPJ caso inválido
 	}
 
-	docLimpo := LimparDocumento(nrInsc)
-	// Ajusta número de inscrição para exatamente 14 caracteres com zeros à esquerda
-	if len(docLimpo) > 14 {
-		docLimpo = docLimpo[:14]
-	}
-	docFormatado := fmt.Sprintf("%014s", docLimpo)
+	docFormatado := InscricaoDoID(tpInsc, nrInsc)
 
 	timestamp := t.Format("20060102150405")
 

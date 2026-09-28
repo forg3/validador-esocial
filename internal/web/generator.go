@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/forg3/esocial-emissor-livre/internal/esocial"
 )
 
 // GerarIDEvento gera um identificador único no padrão oficial do eSocial:
@@ -19,11 +21,7 @@ func GerarIDEvento(cnpj string) string {
 		}
 		return -1
 	}, cnpj)
-	if len(limpo) < 14 {
-		limpo = strings.Repeat("0", 14-len(limpo)) + limpo
-	} else if len(limpo) > 14 {
-		limpo = limpo[:14]
-	}
+	limpo = esocial.InscricaoDoID(esocial.TpInscCNPJ, limpo) // raiz + "000000" (regra do eSocial)
 	agora := time.Now().Format("20060102150405")
 	nano := time.Now().Nanosecond() % 100000
 	return fmt.Sprintf("ID1%s%s%05d", limpo, agora, nano)
@@ -105,7 +103,7 @@ func GerarXMLS2240(p ParametrosS2240) string {
 	sb.WriteString("    </ideEvento>\n")
 	sb.WriteString("    <ideEmpregador>\n")
 	sb.WriteString("      <tpInsc>1</tpInsc>\n")
-	fmt.Fprintf(&sb, "      <nrInsc>%s</nrInsc>\n", cnpjLimpo)
+	fmt.Fprintf(&sb, "      <nrInsc>%s</nrInsc>\n", raizCNPJ(cnpjLimpo))
 	sb.WriteString("    </ideEmpregador>\n")
 
 	// ideVinculo (o XSD S-1.3 exige ideVinculo; matrícula é opcional)
@@ -328,7 +326,7 @@ func GerarXMLS2210(p ParametrosS2210) string {
 	sb.WriteString("    </ideEvento>\n")
 	sb.WriteString("    <ideEmpregador>\n")
 	sb.WriteString("      <tpInsc>1</tpInsc>\n")
-	fmt.Fprintf(&sb, "      <nrInsc>%s</nrInsc>\n", cnpjLimpo)
+	fmt.Fprintf(&sb, "      <nrInsc>%s</nrInsc>\n", raizCNPJ(cnpjLimpo))
 	sb.WriteString("    </ideEmpregador>\n")
 	sb.WriteString("    <ideVinculo>\n")
 	fmt.Fprintf(&sb, "      <cpfTrab>%s</cpfTrab>\n", cpfLimpo)
@@ -481,7 +479,7 @@ func GerarXMLS2220(p ParametrosS2220) string {
 	sb.WriteString("    </ideEvento>\n")
 	sb.WriteString("    <ideEmpregador>\n")
 	sb.WriteString("      <tpInsc>1</tpInsc>\n")
-	fmt.Fprintf(&sb, "      <nrInsc>%s</nrInsc>\n", cnpjLimpo)
+	fmt.Fprintf(&sb, "      <nrInsc>%s</nrInsc>\n", raizCNPJ(cnpjLimpo))
 	sb.WriteString("    </ideEmpregador>\n")
 	sb.WriteString("    <ideVinculo>\n")
 	fmt.Fprintf(&sb, "      <cpfTrab>%s</cpfTrab>\n", cpfLimpo)
@@ -562,6 +560,16 @@ func simNao(v string) string {
 }
 
 // somenteDigitosOu devolve o valor se ele tiver exatamente n dígitos; caso contrário, o padrão.
+// raizCNPJ: no ideEmpregador o eSocial usa a raiz de 8 dígitos (a mesma do S-1000 e do lote). Com o CNPJ
+// inteiro o lote volta com a ocorrência 599 "somente eventos pertencentes ao mesmo empregador"
+// (produção restrita, 28/09/2026). Estabelecimento (infoAmb, localAmb) continua com os 14 dígitos.
+func raizCNPJ(cnpj string) string {
+	if len(cnpj) > 8 {
+		return cnpj[:8]
+	}
+	return cnpj
+}
+
 func somenteDigitosOu(v, padrao string, n int) string {
 	if len(v) == n && somenteDigitos(v) {
 		return v

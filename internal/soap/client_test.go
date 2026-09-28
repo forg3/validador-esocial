@@ -232,3 +232,19 @@ func TestSOAPFaultTratamento(t *testing.T) {
 		t.Errorf("mensagem de erro inesperada: %v", err)
 	}
 }
+
+func TestGrupoDoLote(t *testing.T) {
+	casos := map[string]int{
+		`<eSocial><evtInfoEmpregador Id="x"/></eSocial>`: 1,
+		`<eSocial><evtTabRubrica Id="x"/></eSocial>`:     1,
+		`<eSocial><evtMonit Id="x"/></eSocial>`:          2,
+		`<eSocial><evtExpRisco Id="x"/></eSocial>`:       2,
+		`<eSocial><evtCAT Id="x"/></eSocial>`:            2,
+		`<eSocial><evtRemun Id="x"/></eSocial>`:          3,
+	}
+	for xml, esperado := range casos {
+		if g := grupoDoLote(xml); g != esperado {
+			t.Errorf("%s: grupo %d, esperado %d", xml, g, esperado)
+		}
+	}
+}

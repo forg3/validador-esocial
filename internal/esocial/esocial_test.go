@@ -17,7 +17,7 @@ func TestGerarIDEvento(t *testing.T) {
 		t.Fatalf("esperava ID com 36 caracteres, obteve %d: %s", len(id), id)
 	}
 
-	esperado := "ID1123456780001952026092212304500001"
+	esperado := "ID1123456780000002026092212304500001" // raiz do CNPJ + 000000
 	if id != esperado {
 		t.Errorf("ID gerado incompatível.\nEsperado: %s\nObtido:   %s", esperado, id)
 	}
@@ -27,9 +27,9 @@ func TestGerarIDEvento(t *testing.T) {
 		t.Errorf("ValidarIDEvento falhou para ID válido: %v", err)
 	}
 
-	// 2. Testa CPF com padding de zeros à esquerda
+	// 2. CPF: 11 dígitos completados com zeros à direita
 	idCPF := esocial.GerarIDEventoComTempo(esocial.TpInscCPF, "123.456.789-09", dataFixa, 42)
-	esperadoCPF := "ID2000123456789092026092212304500042"
+	esperadoCPF := "ID2123456789090002026092212304500042"
 	if idCPF != esperadoCPF {
 		t.Errorf("ID gerado para CPF incompatível.\nEsperado: %s\nObtido:   %s", esperadoCPF, idCPF)
 	}

@@ -32,8 +32,10 @@ const (
 
 // SOAP Actions oficiais do eSocial
 const (
-	SOAPActionEnvioLote    = "http://www.esocial.gov.br/servicos/empregador/lote/eventos/envio/v1_1_0/ServicoEnviarLoteEventos/EnviarLoteEventos"
-	SOAPActionConsultaLote = "http://www.esocial.gov.br/servicos/empregador/lote/eventos/consulta/v1_1_0/ServicoConsultarLoteEventos/ConsultarLoteEventos"
+	SOAPActionEnvioLote = "http://www.esocial.gov.br/servicos/empregador/lote/eventos/envio/v1_1_0/ServicoEnviarLoteEventos/EnviarLoteEventos"
+	// Conferido no WSDL da produção restrita em 28/09/2026 (TestRestritaWSDL): a consulta é o serviço de
+	// "retornoProcessamento"; com o namespace antigo o eSocial responde ActionNotSupported.
+	SOAPActionConsultaLote = "http://www.esocial.gov.br/servicos/empregador/lote/eventos/envio/consulta/retornoProcessamento/v1_1_0/ServicoConsultarLoteEventos/ConsultarLoteEventos"
 )
 
 // Ocorrencia representa advertências ou inconsistências retornadas pelo webservice do eSocial.
@@ -115,6 +117,10 @@ func NovoClienteSOAP(cert crypto.Certificado, opts ...OpcaoClienteSOAP) (*Client
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{tlsCert},
 		MinVersion:   tls.VersionTLS12,
+		// Os webservices do eSocial (IIS) só pedem o certificado do cliente depois do handshake, por
+		// renegociação TLS 1.2. Sem isto o Go recusa com "tls: no renegotiation" (visto na produção
+		// restrita com e-CNPJ real, 28/09/2026). Uma renegociação por conexão basta.
+		Renegotiation: tls.RenegotiateOnceAsClient,
 	}
 
 	transport := &http.Transport{
@@ -213,12 +219,12 @@ func (c *ClienteSOAP) ConsultarLote(ctx context.Context, protocolo string, ambie
 	}
 
 	envelope := fmt.Sprintf(
-		`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:v1="http://www.esocial.gov.br/servicos/empregador/lote/eventos/consulta/v1_1_0">`+
+		`<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:v1="http://www.esocial.gov.br/servicos/empregador/lote/eventos/envio/consulta/retornoProcessamento/v1_1_0">`+
 			`<soapenv:Header/>`+
 			`<soapenv:Body>`+
 			`<v1:ConsultarLoteEventos>`+
 			`<v1:consulta>`+
-			`<eSocial xmlns="http://www.esocial.gov.br/schema/lote/eventos/consulta/v1_0_0">`+
+			`<eSocial xmlns="http://www.esocial.gov.br/schema/lote/eventos/envio/consulta/retornoProcessamento/v1_0_0">`+
 			`<consultaLoteEventos>`+
 			`<protocoloEnvio>%s</protocoloEnvio>`+
 			`</consultaLoteEventos>`+
@@ -255,6 +261,23 @@ func (c *ClienteSOAP) ConsultarLote(ctx context.Context, protocolo string, ambie
 }
 
 // prepararXMLLote assegura que o evento esteja encapsulado no elemento de lote de envio do eSocial.
+// grupoDoLote: o eSocial separa os lotes por grupo — 1 tabelas (S-1000 a S-1080), 2 não periódicos
+// (S-2xxx, inclusive SST: S-2210, S-2220, S-2240), 3 periódicos (S-1200 a S-1299). Evento no grupo
+// errado volta com a ocorrência 101 "tipo de evento não aceito para este tipo de lote" (produção
+// restrita, 28/09/2026).
+func grupoDoLote(xmlEvento string) int {
+	if strings.Contains(xmlEvento, "<evtInfoEmpregador") || strings.Contains(xmlEvento, "<evtTab") {
+		return 1
+	}
+	for _, tag := range []string{"<evtRemun", "<evtRmnRPPS", "<evtBenPrRP", "<evtPgtos", "<evtAqProd", "<evtComProd",
+		"<evtContratAvNP", "<evtInfoComplPer", "<evtReabreEvPer", "<evtFechaEvPer"} {
+		if strings.Contains(xmlEvento, tag) {
+			return 3
+		}
+	}
+	return 2
+}
+
 func (c *ClienteSOAP) prepararXMLLote(xmlAssinado []byte) []byte {
 	conteudo := strings.TrimSpace(string(xmlAssinado))
 
@@ -290,7 +313,7 @@ func (c *ClienteSOAP) prepararXMLLote(xmlAssinado []byte) []byte {
 
 	lote := fmt.Sprintf(
 		`<eSocial xmlns="http://www.esocial.gov.br/schema/lote/eventos/envio/v1_1_1">`+
-			`<envioLoteEventos grupo="1">`+
+			`<envioLoteEventos grupo="%d">`+
 			`<ideEmpregador>`+
 			`<tpInsc>1</tpInsc>`+
 			`<nrInsc>%s</nrInsc>`+
@@ -304,6 +327,7 @@ func (c *ClienteSOAP) prepararXMLLote(xmlAssinado []byte) []byte {
 			`</eventos>`+
 			`</envioLoteEventos>`+
 			`</eSocial>`,
+		grupoDoLote(conteudo),
 		nrInscEmpregador,
 		cnpj,
 		idEvento,
@@ -313,6 +337,9 @@ func (c *ClienteSOAP) prepararXMLLote(xmlAssinado []byte) []byte {
 	return []byte(lote)
 }
 
+// reFaultSOAP reconhece a falha SOAP com qualquer prefixo (<s:Fault>, <soap:Fault>, <Fault>); o eSocial usa "s:".
+var reFaultSOAP = regexp.MustCompile(`<([A-Za-z][\w.-]*:)?Fault[\s>]`)
+
 func (c *ClienteSOAP) interpretarRespostaEnvio(corpo []byte) (*RespostaEnvioLote, error) {
 	xmlStr := string(corpo)
 	resultado := &RespostaEnvioLote{
@@ -320,7 +347,7 @@ func (c *ClienteSOAP) interpretarRespostaEnvio(corpo []byte) (*RespostaEnvioLote
 	}
 
 	// Verifica se há SOAP Fault
-	if strings.Contains(xmlStr, "<soap:Fault>") || strings.Contains(xmlStr, "<Fault>") {
+	if reFaultSOAP.MatchString(xmlStr) {
 		faultString := extrairTagXML(xmlStr, "faultstring")
 		return resultado, fmt.Errorf("falha SOAP retornada pelo webservice: %s", faultString)
 	}
@@ -363,7 +390,7 @@ func (c *ClienteSOAP) interpretarRespostaConsulta(corpo []byte) (*RespostaConsul
 	}
 
 	// Verifica se há SOAP Fault
-	if strings.Contains(xmlStr, "<soap:Fault>") || strings.Contains(xmlStr, "<Fault>") {
+	if reFaultSOAP.MatchString(xmlStr) {
 		faultString := extrairTagXML(xmlStr, "faultstring")
 		return resultado, fmt.Errorf("falha SOAP retornada pelo webservice: %s", faultString)
 	}

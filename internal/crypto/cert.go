@@ -261,9 +261,33 @@ func CarregarA1Arquivo(caminho string, senha string) (Certificado, error) {
 	return CarregarA1(dados, senha)
 }
 
-// CarregarA1 decodifica os dados em formato PKCS#12 (.pfx / .p12) usando golang.org/x/crypto/pkcs12
-// e software.sslmate.com/src/go-pkcs12, extraindo a chave privada RSA, o certificado folha e a cadeia.
+// CarregarA1 decodifica os dados em formato PKCS#12 (.pfx / .p12), extraindo a chave privada RSA, o
+// certificado folha e a cadeia. Arquivo em BER (comum no A1 do ICP-Brasil) é reescrito em DER em memória
+// antes da decodificação (pkcs12ber.go); o arquivo original nunca é alterado.
 func CarregarA1(pfxDados []byte, senha string) (Certificado, error) {
+	cert, err := carregarA1DER(pfxDados, senha)
+	if err == nil || !pareceBER(pfxDados, err) {
+		return cert, err
+	}
+	der, errBER := pfxBERParaDER(pfxDados, senha)
+	if errors.Is(errBER, errSenhaPFX) {
+		return nil, fmt.Errorf("falha ao decodificar PKCS#12: %w", errSenhaPFX)
+	}
+	if errBER != nil {
+		return nil, fmt.Errorf("falha ao decodificar PKCS#12 em BER: %w (leitura direta: %v)", errBER, err)
+	}
+	return carregarA1DER(der, senha)
+}
+
+// pareceBER: SEQUENCE externa com tamanho indefinido, ou a biblioteca recusou por "not DER".
+func pareceBER(pfx []byte, err error) bool {
+	return (len(pfx) > 1 && pfx[0] == 0x30 && pfx[1] == 0x80) ||
+		strings.Contains(err.Error(), "indefinite length") || strings.Contains(err.Error(), "not DER")
+}
+
+// carregarA1DER é a decodificação com as bibliotecas de PKCS#12 (golang.org/x/crypto/pkcs12 e
+// software.sslmate.com/src/go-pkcs12), que só aceitam DER.
+func carregarA1DER(pfxDados []byte, senha string) (Certificado, error) {
 	var privKeyInterface crypto.PrivateKey
 	var folha *x509.Certificate
 	var cadeia []*x509.Certificate

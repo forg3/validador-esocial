@@ -13,7 +13,7 @@
 
 Software web livre, leve e direto para elaboração, validação estrutural (XSD) e assinatura digital (XMLDSig A1) dos eventos do **eSocial** (versão S-1.3), com execução local e autenticação obrigatória.
 
-> **Estado atual (após o pente fino de 26/09/2026):** a assinatura com certificado A1 é **real quando a senha do certificado é informada** na fila (sem senha, o envelope é simulado e marcado como tal). O envio ao webservice oficial fica em **modo simulado por padrão** e só é real no modo "Real" em Certificado & Empresa — ainda **não testado com certificado de verdade em produção restrita**. Não use comprovantes simulados para cumprimento de obrigação acessória. Relatório: [`docs/security-audit/pente-fino-2026-09-26.md`](docs/security-audit/pente-fino-2026-09-26.md).
+> **Estado atual (após o pente fino de 26/09/2026):** a assinatura com certificado A1 é **real quando a senha do certificado é informada** na fila (sem senha, o envelope é simulado e marcado como tal). O envio ao webservice oficial fica em **modo simulado por padrão** e só é real no modo "Real" em Certificado & Empresa. **Em 28/09/2026 o ciclo real foi conferido na Produção Restrita com e-CNPJ A1 do ICP-Brasil**: S-1000 aceito com recibo e S-2220 aprovado no esquema e na assinatura (teste `go test -tags restrita ./internal/soap/`). Não use comprovantes simulados para cumprimento de obrigação acessória. Relatório: [`docs/security-audit/pente-fino-2026-09-26.md`](docs/security-audit/pente-fino-2026-09-26.md).
 
 ---
 
@@ -166,7 +166,7 @@ Download dos binários pré-compilados portáteis para Linux, Windows e macOS na
 ---
 
 - [x] **Pente fino e pentest (v1.2-alpha)**: assinatura A1 real pela fila, validação na importação, tabelas 13/14/15/17/27 completas e relatório em `docs/security-audit/pente-fino-2026-09-26.md`.
-- [ ] **Teste com certificado A1 real em Produção Restrita**: aguarda a compra do e-CNPJ.
+- [x] **Teste com certificado A1 real em Produção Restrita (28/09/2026)**: S-1000 aceito com recibo; S-2220 passou no esquema e na assinatura (recusado só por não haver o S-2200 do trabalhador). O teste real corrigiu sete pontos que o simulador não pegava: leitura de `.pfx` em BER (formato comum do A1 do ICP-Brasil), renegociação TLS pedida pelo servidor do eSocial, Id do evento com zeros à direita (raiz do CNPJ + 000000), `ideEmpregador` com a raiz do CNPJ, assinatura com `Reference URI=""` sobre o documento inteiro, namespace/SOAPAction da consulta (`retornoProcessamento`) e grupo do lote por tipo de evento (1 tabelas, 2 não periódicos, 3 periódicos).
 - [x] **Leiautes S-1.3 aderentes ao XSD oficial (Sprint 1)**: geradores de S-2210, S-2220 e S-2240 reescritos conforme o leiaute oficial, com tabelas 13/14/15/17/27 embutidas e validação por schema aprovada nos testes de regressão.
 - [x] **Auditoria de Segurança e Hardening (v1.1-alpha)**: autenticação obrigatória, anti-CSRF, validação de Host, limites de entrada, rate limit, cabeçalhos de segurança e relatório de auditoria publicado em `docs/security-audit/`.
 - [x] **Publicação de Packages (GitHub Packages)**: Imagem de container publicada no GitHub Container Registry (`ghcr.io/forg3/validador-esocial:v1.2-alpha`).
@@ -182,7 +182,7 @@ Download dos binários pré-compilados portáteis para Linux, Windows e macOS na
 
 ## O que não faz
 
-- **Transmissão real exige certificado A1 válido e homologação**: o envio oficial está implementado (mTLS + `EnviarLoteEventos`/`ConsultarLoteEventos`) e validado com webservice simulado; a conferência final depende de certificado real em Produção Restrita. O modo padrão continua **simulado**, com aviso na interface.
+- **Transmissão real exige certificado A1 válido**: o envio oficial (mTLS + `EnviarLoteEventos`/`ConsultarLoteEventos`) foi conferido na Produção Restrita com e-CNPJ real. Eventos de SST (S-2210/S-2220/S-2240) exigem o trabalhador já cadastrado no eSocial (S-2200), que este projeto não gera. O modo padrão continua **simulado**, com aviso na interface.
 - **Certificados A3 exigem build dedicada**: o suporte a token/smartcard via PKCS#11 está implementado, mas não é
   incluído na build padrão (que aceita certificados **A1** em `.pfx`/`.p12`). Para habilitar, compile com
   `go build -tags pkcs11 ./cmd/server` e informe o módulo PKCS#11 do fabricante na tela **Certificado & Empresa**.
