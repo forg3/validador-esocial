@@ -44,7 +44,7 @@ archives:
     files:
       - README.md
       - LICENSE
-      - RELEASE_NOTES_v1.2-alpha.md
+      - RELEASE_NOTES_v1.3-alpha.md
       - docs/security-audit/pente-fino-2026-09-26.md
       - docs/security-audit/relatorio-auditoria-seguranca.pdf
 

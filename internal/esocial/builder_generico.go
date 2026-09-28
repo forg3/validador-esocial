@@ -16,6 +16,15 @@ var regexPlaceholder = regexp.MustCompile(`\{\{([a-zA-Z0-9_]+)\}\}`)
 // GerarXMLEventoGenerico constrói o arquivo XML oficial no padrão eSocial S-1.3
 // para qualquer um dos 36 eventos do catálogo, preenchendo o identificador de 36 caracteres,
 // ideEvento, ideEmpregador e os campos específicos informados no mapa de dados.
+// nrInscEmpregador: no ideEmpregador o CNPJ vai pela raiz (8 dígitos), como no S-1000 e no lote;
+// estabelecimento e local de trabalho (NR_INSC_ESTAB, NR_INSC_AMB) continuam com os 14.
+func nrInscEmpregador(tpInsc int, nr string) string {
+	if tpInsc == TpInscCNPJ && len(nr) == 14 {
+		return nr[:8]
+	}
+	return nr
+}
+
 func GerarXMLEventoGenerico(codigo string, dados map[string]string) ([]byte, error) {
 	evt := ObterEventoPorCodigo(codigo)
 	if evt == nil {
@@ -104,7 +113,7 @@ func GerarXMLEventoGenerico(codigo string, dados map[string]string) ([]byte, err
 		"PROC_EMI":  procEmi,
 		"VER_PROC":  verProc,
 		"TP_INSC":   fmt.Sprintf("%d", tpInsc),
-		"NR_INSC":   nrInsc,
+		"NR_INSC":   nrInscEmpregador(tpInsc, nrInsc), // ideEmpregador: raiz do CNPJ
 		"IND_RETIF": indRetif,
 	}
 
@@ -177,6 +186,14 @@ func GerarXMLEventoGenerico(codigo string, dados map[string]string) ([]byte, err
 		"COD_CARGO":           "CARGO-01",
 		"COD_CBO":             "411010",
 		"COD_CATEG":           "101",
+		"BAIRRO":              "Centro",
+		"CEP":                 "80010000",
+		"UF_END":              "PR",
+		"CNPJ_SIND":           nrInsc,
+		"NM_CARGO":            "Cargo do Trabalhador",
+		"VR_SAL_FX":           "1518.00",
+		"QTD_HRS_SEM":         "44",
+		"DSC_JORN":            "Segunda a sexta, 8h às 17h48, com 1h de intervalo.",
 		"NAT_ATIVIDADE":       "1",
 		"TP_REG_TRAB":         "1",
 		"TP_REG_PREV":         "1",

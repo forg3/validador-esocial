@@ -54,6 +54,8 @@ func inicializarDiretorioXSD() {
 		"evtExpRisco.xsd",
 		"evtCAT.xsd",
 		"evtMonit.xsd",
+		"evtAdmissao.xsd",
+		"evtTabEstab.xsd",
 	}
 
 	for _, arq := range arquivos {
@@ -96,6 +98,10 @@ func ObterNomeXSD(tipoEvento string) (string, error) {
 		return "evtCAT.xsd", nil
 	case "S-2220", "2220", "EVTMONIT":
 		return "evtMonit.xsd", nil
+	case "S-2200", "2200", "EVTADMISSAO":
+		return "evtAdmissao.xsd", nil
+	case "S-1005", "1005", "EVTTABESTAB":
+		return "evtTabEstab.xsd", nil
 	default:
 		return "", fmt.Errorf("tipo de evento eSocial desconhecido: %s", tipoEvento)
 	}

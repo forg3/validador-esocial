@@ -273,9 +273,22 @@ func inicializarCatalogo() {
       <nmTrab>{{NM_TRAB}}</nmTrab>
       <sexo>{{SEXO}}</sexo>
       <racaCor>{{RACA_COR}}</racaCor>
-      <estCiv>{{EST_CIV}}</estCiv>
       <grauInstr>{{GRAU_INSTR}}</grauInstr>
-      <dtNascto>{{DT_NASCTO}}</dtNascto>
+      <nascimento>
+        <dtNascto>{{DT_NASCTO}}</dtNascto>
+        <paisNascto>105</paisNascto>
+        <paisNac>105</paisNac>
+      </nascimento>
+      <endereco>
+        <brasil>
+          <dscLograd>{{DSC_LOGRAD}}</dscLograd>
+          <nrLograd>{{NR_LOGRAD}}</nrLograd>
+          <bairro>{{BAIRRO}}</bairro>
+          <cep>{{CEP}}</cep>
+          <codMunic>{{COD_MUNIC}}</codMunic>
+          <uf>{{UF_END}}</uf>
+        </brasil>
+      </endereco>
     </trabalhador>
     <vinculo>
       <matricula>{{MATRICULA}}</matricula>
@@ -283,17 +296,39 @@ func inicializarCatalogo() {
       <tpRegPrev>{{TP_REG_PREV}}</tpRegPrev>
       <cadIni>N</cadIni>
       <infoRegimeTrab>
-        <infoCLT>
+        <infoCeletista>
           <dtAdm>{{DT_ADM}}</dtAdm>
           <tpAdmissao>1</tpAdmissao>
           <indAdmissao>1</indAdmissao>
           <tpRegJor>1</tpRegJor>
-          <natAtividade>1</natAtividade>
-        </infoCLT>
+          <natAtividade>{{NAT_ATIVIDADE}}</natAtividade>
+          <cnpjSindCategProf>{{CNPJ_SIND}}</cnpjSindCategProf>
+        </infoCeletista>
       </infoRegimeTrab>
       <infoContrato>
-        <codCargo>{{COD_CARGO}}</codCargo>
-        <codCBO>{{COD_CBO}}</codCBO>
+        <nmCargo>{{NM_CARGO}}</nmCargo>
+        <CBOCargo>{{COD_CBO}}</CBOCargo>
+        <codCateg>{{COD_CATEG}}</codCateg>
+        <remuneracao>
+          <vrSalFx>{{VR_SAL_FX}}</vrSalFx>
+          <undSalFixo>5</undSalFixo>
+        </remuneracao>
+        <duracao>
+          <tpContr>1</tpContr>
+        </duracao>
+        <localTrabalho>
+          <localTrabGeral>
+            <tpInsc>1</tpInsc>
+            <nrInsc>{{NR_INSC_ESTAB}}</nrInsc>
+          </localTrabGeral>
+        </localTrabalho>
+        <horContratual>
+          <qtdHrsSem>{{QTD_HRS_SEM}}</qtdHrsSem>
+          <tpJornada>2</tpJornada>
+          <tmpParc>0</tmpParc>
+          <horNoturno>N</horNoturno>
+          <dscJorn>{{DSC_JORN}}</dscJorn>
+        </horContratual>
       </infoContrato>
     </vinculo>
   </evtAdmissao>
