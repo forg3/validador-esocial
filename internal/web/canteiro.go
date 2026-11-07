@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -115,8 +116,12 @@ func (s *Servidor) handleResultadoCanteiro(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	res := canteiro.Resultado{Status: ev.Status, Recibo: ev.Recibo, Protocolo: ev.Protocolo, Mensagem: ev.MensagemRetorno}
-	switch ev.Status {
-	case "aceito", "rejeitado", "transmitido":
+	switch {
+	case ev.Status == "rejeitado" && ev.Protocolo == "":
+		// Reprovação só na validação local: o eSocial nunca viu o evento, nada a registrar no Canteiro.
+		s.canteiroComFlash(w, r, "Reprovado na validação local, sem transmissão: "+ev.MensagemRetorno+" Corrija no Canteiro Prime e busque de novo. Nada foi enviado.", true)
+		return
+	case ev.Status == "aceito" || ev.Status == "rejeitado" || ev.Status == "transmitido":
 	default:
 		s.canteiroComFlash(w, r, "Este evento ainda não foi transmitido ao eSocial (situação: "+ev.Status+"). Valide, assine e transmita antes de enviar o resultado.", true)
 		return
@@ -124,6 +129,11 @@ func (s *Servidor) handleResultadoCanteiro(w http.ResponseWriter, r *http.Reques
 	ctx, cancelar := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancelar()
 	if err := s.cliente().EnviarResultado(ctx, strings.TrimPrefix(id, prefixoCanteiro), res); err != nil {
+		if errors.Is(err, canteiro.ErrConflito) {
+			_ = s.db.ExcluirEvento(id)
+			s.canteiroComFlash(w, r, err.Error()+" O XML foi removido da fila local.", true)
+			return
+		}
 		s.canteiroComFlash(w, r, "Resultado NÃO enviado (o evento continua aqui, tente de novo): "+err.Error(), true)
 		return
 	}

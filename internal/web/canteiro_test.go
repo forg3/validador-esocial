@@ -97,6 +97,65 @@ func TestCanteiroBuscarEnviarResultadoIdempotente(t *testing.T) {
 	}
 }
 
+func TestCanteiroRejeicaoLocalNaoEnvia(t *testing.T) {
+	srv, db, mux, cleanup := prepararServidorSeguranca(t)
+	defer cleanup()
+	f := novoCanteiroFalso(t, "lxag_t.ok")
+	t.Setenv("CANTEIRO_URL", f.URL)
+	t.Setenv("CANTEIRO_TOKEN", "lxag_t.ok")
+	cookie, csrf := autenticar(t, mux, srv), srv.TokenCSRF()
+	postCanteiro(t, mux, cookie, csrf, "/canteiro/buscar")
+	db.AtualizarStatusEvento("cp-e1", "rejeitado", "", "", "XSD reprovou")
+	corpo := postCanteiro(t, mux, cookie, csrf, "/canteiro/cp-e1/resultado")
+	if f.posts != 0 || !strings.Contains(corpo, "busque de novo") {
+		t.Fatalf("rejeição local não pode ser enviada: posts=%d %s", f.posts, corpo)
+	}
+	if ev, _ := db.ObterEvento("cp-e1"); ev == nil {
+		t.Fatal("o evento deve continuar na fila local")
+	}
+}
+
+func TestCanteiroRejeitadoTransmitidoApagaXML(t *testing.T) {
+	srv, db, mux, cleanup := prepararServidorSeguranca(t)
+	defer cleanup()
+	f := novoCanteiroFalso(t, "lxag_t.ok")
+	t.Setenv("CANTEIRO_URL", f.URL)
+	t.Setenv("CANTEIRO_TOKEN", "lxag_t.ok")
+	cookie, csrf := autenticar(t, mux, srv), srv.TokenCSRF()
+	postCanteiro(t, mux, cookie, csrf, "/canteiro/buscar")
+	db.AtualizarStatusEvento("cp-e1", "rejeitado", "", "PROT9", "lote rejeitado")
+	postCanteiro(t, mux, cookie, csrf, "/canteiro/cp-e1/resultado")
+	if f.resultados["e1"]["status"] != "rejeitado" || f.resultados["e1"]["protocolo"] != "PROT9" {
+		t.Fatalf("não enviou: %v", f.resultados)
+	}
+	if ev, _ := db.ObterEvento("cp-e1"); ev != nil {
+		t.Fatal("XML deveria ter sido apagado")
+	}
+}
+
+func TestCanteiro409ApagaXML(t *testing.T) {
+	srv, db, mux, cleanup := prepararServidorSeguranca(t)
+	defer cleanup()
+	f := novoCanteiroFalso(t, "lxag_t.ok")
+	t.Setenv("CANTEIRO_URL", f.URL)
+	t.Setenv("CANTEIRO_TOKEN", "lxag_t.ok")
+	cookie, csrf := autenticar(t, mux, srv), srv.TokenCSRF()
+	postCanteiro(t, mux, cookie, csrf, "/canteiro/buscar")
+	f.Close()
+	// novo servidor que responde 409 no resultado
+	c := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Error(w, "{}", 409) }))
+	defer c.Close()
+	t.Setenv("CANTEIRO_URL", c.URL)
+	db.AtualizarStatusEvento("cp-e1", "aceito", "1.2", "P", "ok")
+	corpo := postCanteiro(t, mux, cookie, csrf, "/canteiro/cp-e1/resultado")
+	if !strings.Contains(corpo, "cancelado") {
+		t.Fatalf("sem aviso: %s", corpo)
+	}
+	if ev, _ := db.ObterEvento("cp-e1"); ev != nil {
+		t.Fatal("XML deveria ter sido apagado")
+	}
+}
+
 func TestCanteiroTokenRecusadoERedeCaida(t *testing.T) {
 	srv, _, mux, cleanup := prepararServidorSeguranca(t)
 	defer cleanup()
