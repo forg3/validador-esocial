@@ -85,6 +85,12 @@ type Cliente struct {
 	HTTP       *http.Client // opcional
 }
 
+// Validar confere endereço e token sem sair da máquina.
+func (c Config) Validar() error {
+	_, err := (&Cliente{URL: c.URL, Token: c.Token}).base()
+	return err
+}
+
 func (c *Cliente) base() (string, error) {
 	u, err := url.Parse(c.URL)
 	if c.URL == "" || c.Token == "" || err != nil || u.Host == "" {
