@@ -1,0 +1,62 @@
+{{ define "content" }}
+<div class="page-header">
+  <div>
+    <h1 style="margin: 0; font-size: var(--fs-xl);">Canteiro Prime</h1>
+    <p style="margin: 4px 0 0 0; font-size: var(--fs-sm); color: var(--text-2);">
+      Traga as CATs que o Canteiro Prime deixou na fila, assine com o seu certificado, transmita ao eSocial e devolva o recibo.
+      O certificado fica neste computador. O XML sai daqui quando o resultado final é entregue.
+    </p>
+  </div>
+</div>
+
+{{ if .MensagemFlash }}
+  <div class="card" style="margin-bottom: var(--sp-4); border-left: 4px solid {{ if .FlashErro }}var(--err, #b42318){{ else }}var(--ok, #067647){{ end }};">{{ .MensagemFlash }}</div>
+{{ end }}
+
+<div class="card" style="margin-bottom: var(--sp-4);">
+  <h3 style="margin-top: 0; font-size: var(--fs-base);">1. Conexão</h3>
+  <form action="/canteiro/config" method="POST" hx-post="/canteiro/config" hx-target="#conteudo">
+    <input type="hidden" name="csrf_token" value="{{ csrfToken }}">
+    <label for="cp_url">Endereço do Canteiro Prime</label>
+    <input type="url" id="cp_url" name="url" value="{{ .URL }}" placeholder="https://..." required>
+    <label for="cp_token">Token do agente {{ if .TemToken }}(já salvo; deixe em branco para manter){{ end }}</label>
+    <input type="password" id="cp_token" name="token" autocomplete="off" placeholder="lxag_...">
+    <button type="submit" class="btn btn-outline">Salvar</button>
+  </form>
+  <p class="muted" style="font-size: 12px;">Gere o token no Canteiro Prime, em /esocial/agente. Ele fica só em dados/canteiro.json deste computador.</p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top: 0; font-size: var(--fs-base);">2. CATs pendentes</h3>
+  <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+    <button type="button" class="btn btn-primario" hx-post="/canteiro/buscar" hx-target="#conteudo">Buscar CATs pendentes</button>
+    <label for="senha_a1" style="font-size: 11px; font-weight: 600;">Senha do certificado A1:</label>
+    <input type="password" id="senha_a1" name="senha_a1" autocomplete="off" style="height: 32px; width: 160px;">
+  </div>
+
+  {{ if .Eventos }}
+    <table style="width: 100%; margin-top: var(--sp-3); border-collapse: collapse; font-size: 13px;">
+      <thead><tr style="text-align: left;"><th>Evento</th><th>Situação</th><th>Recibo</th><th>Retorno</th><th>Passos</th></tr></thead>
+      <tbody>
+      {{ range .Eventos }}
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td>{{ .Tipo }}<br><small>{{ .ID }}</small></td>
+          <td><span class="badge {{ statusBadgeClass .Status }}">{{ statusDescricao .Status }}</span></td>
+          <td>{{ .Recibo }}</td>
+          <td>{{ .MensagemRetorno }}</td>
+          <td style="white-space: nowrap;">
+            <button class="btn btn-outline" hx-post="/fila/{{ .ID }}/validar" hx-target="#conteudo">Validar</button>
+            <button class="btn btn-outline" hx-post="/fila/{{ .ID }}/assinar" hx-include="#senha_a1" hx-target="#conteudo">Assinar</button>
+            <button class="btn btn-outline" hx-post="/fila/{{ .ID }}/transmitir" hx-include="#senha_a1" hx-target="#conteudo" hx-confirm="Transmitir este evento ao eSocial?">Transmitir</button>
+            <button class="btn btn-outline" hx-post="/fila/{{ .ID }}/recibo" hx-include="#senha_a1" hx-target="#conteudo">Consultar recibo</button>
+            <button class="btn btn-primario" hx-post="/canteiro/{{ .ID }}/resultado" hx-target="#conteudo">Enviar resultado ao Canteiro</button>
+          </td>
+        </tr>
+      {{ end }}
+      </tbody>
+    </table>
+  {{ else }}
+    <p class="muted">Nenhuma CAT trazida ainda. Clique em "Buscar CATs pendentes".</p>
+  {{ end }}
+</div>
+{{ end }}

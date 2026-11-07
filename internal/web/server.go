@@ -42,6 +42,7 @@ type Servidor struct {
 	riscos    []data.Risco
 	cbos      []data.CBO
 	auth      *autenticacao
+	dirDados  string // pasta de dados (banco, auth.json, canteiro.json)
 
 	// Tabelas oficiais do eSocial usadas pelos formulários de SST.
 	partesCorpo       []data.ItemTabela
@@ -103,6 +104,7 @@ func NovoServidorComOpcoes(db *storage.DB, opts OpcoesAuth) (*Servidor, error) {
 		riscos:            riscos,
 		cbos:              cbos,
 		auth:              auth,
+		dirDados:          dirDados(opts.Diretorio),
 		partesCorpo:       partesCorpo,
 		agentesCausadores: agentes,
 		situacoesGeradora: situacoes,
@@ -241,6 +243,7 @@ func (s *Servidor) carregarTemplates() error {
 		"editor_generico",
 		"relatorios",
 		"perfis",
+		"canteiro",
 	}
 
 	for _, pag := range paginas {
@@ -348,6 +351,12 @@ func (s *Servidor) Rotas() http.Handler {
 	mux.HandleFunc("DELETE /relatorios/{id}", s.handleExcluirRetorno)
 
 	// 7. Perfis multi-empresa (múltiplos certificados e procurações)
+	// Canteiro Prime (agente local)
+	mux.HandleFunc("GET /canteiro", s.handleCanteiro)
+	mux.HandleFunc("POST /canteiro/config", s.handleSalvarConfigCanteiro)
+	mux.HandleFunc("POST /canteiro/buscar", s.handleBuscarCanteiro)
+	mux.HandleFunc("POST /canteiro/{id}/resultado", s.handleResultadoCanteiro)
+
 	mux.HandleFunc("GET /perfis", s.handlePerfis)
 	mux.HandleFunc("POST /perfis", s.handleSalvarPerfil)
 	mux.HandleFunc("POST /perfis/{id}/ativar", s.handleAtivarPerfil)
@@ -2175,4 +2184,11 @@ func extrairIDEvento(xmlConteudo string) string {
 		return ""
 	}
 	return strings.TrimSpace(xmlConteudo[inicio : inicio+fim])
+}
+
+func dirDados(d string) string {
+	if d == "" {
+		return "./dados"
+	}
+	return d
 }
