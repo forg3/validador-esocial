@@ -19,6 +19,9 @@ import (
 	"time"
 )
 
+// ErrConflito: o Canteiro recusou o resultado (409), p. ex. evento cancelado ou já finalizado de outro modo.
+var ErrConflito = errors.New("o Canteiro Prime recusou o resultado (409): o evento foi cancelado ou já está finalizado lá")
+
 const arquivoConfig = "canteiro.json"
 
 // Config guarda o endereço do Canteiro e o token do agente (lxag_<tenant>.<segredo>).
@@ -126,7 +129,10 @@ func (c *Cliente) fazer(ctx context.Context, metodo, caminho string, corpo any, 
 	}
 	cli := c.HTTP
 	if cli == nil {
-		cli = &http.Client{Timeout: 30 * time.Second}
+		// Não segue redirecionamento: o token não pode ir para outro endereço.
+		cli = &http.Client{Timeout: 30 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		}}
 	}
 	resp, err := cli.Do(req)
 	if err != nil {
@@ -138,6 +144,8 @@ func (c *Cliente) fazer(ctx context.Context, metodo, caminho string, corpo any, 
 	switch {
 	case resp.StatusCode == http.StatusUnauthorized:
 		return errors.New("o Canteiro Prime recusou o token (inválido ou revogado): gere outro em /esocial/agente")
+	case resp.StatusCode == http.StatusConflict:
+		return ErrConflito
 	case resp.StatusCode >= 300:
 		return fmt.Errorf("o Canteiro Prime respondeu %d ao %s %s", resp.StatusCode, metodo, caminho)
 	}

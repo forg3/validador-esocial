@@ -121,3 +121,16 @@ func TestConfigArquivoEAmbiente(t *testing.T) {
 		t.Fatalf("env deveria prevalecer: %+v", c)
 	}
 }
+
+func TestNaoSegueRedirecionamento(t *testing.T) {
+	alvo := 0
+	outro := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { alvo++ }))
+	defer outro.Close()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, outro.URL, http.StatusFound)
+	}))
+	defer srv.Close()
+	if _, err := (&Cliente{URL: srv.URL, Token: tokenTeste}).Pendentes(context.Background()); err == nil || alvo != 0 {
+		t.Fatalf("redirecionamento seguido (alvo=%d, err=%v)", alvo, err)
+	}
+}
