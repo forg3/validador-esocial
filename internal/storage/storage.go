@@ -77,7 +77,7 @@ func Abrir(caminho string) (*DB, error) {
 	// Corrige permissões de diretórios preexistentes criados com 0755.
 	_ = os.Chmod(dir, 0700)
 
-	conn, err := sql.Open("sqlite", caminho)
+	conn, err := sql.Open("sqlite", caminho+"?_pragma=secure_delete(1)") // apagar de fato o que sai (dado de saúde)
 	if err != nil {
 		return nil, fmt.Errorf("falha ao abrir sqlite: %w", err)
 	}

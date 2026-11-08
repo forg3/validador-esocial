@@ -79,6 +79,23 @@ Por padrão o sistema opera em **modo simulado** (nada é enviado ao governo). P
 
 Para apontar para um proxy/homologação, defina `ESOCIAL_WS_ENVIO` e `ESOCIAL_WS_CONSULTA`.
 
+### Canteiro Prime: CAT (S-2210) do assinante
+
+O Canteiro Prime gera a CAT e a deixa numa fila. Este programa, no computador que tem o certificado, busca a CAT,
+assina, transmite e devolve o recibo (ou o erro). O Canteiro nunca recebe o certificado.
+
+1. No Canteiro Prime, abra `/esocial/agente`, dê um nome ao agente (ex.: "Notebook do RH") e clique em **Criar token**.
+   Copie na hora: ele não aparece de novo.
+2. Na ocorrência, gere a CAT e clique em **Enviar ao agente local**.
+3. Aqui, abra **Canteiro Prime** no menu, cole o endereço (https://...) e o token e salve. Ficam em `dados/canteiro.json`
+   (permissão `0600`). Alternativa: variáveis `CANTEIRO_URL` e `CANTEIRO_TOKEN`, que têm precedência.
+4. Clique em **Buscar CATs pendentes**. Só entram eventos do mesmo ambiente configurado aqui (restrita ou produção).
+5. Para cada CAT: **Validar**, **Assinar** (senha do A1), **Transmitir** e, se preciso, **Consultar recibo**.
+6. Clique em **Enviar resultado ao Canteiro**. Com recibo ou rejeição entregues, o XML é apagado da fila local (é dado de
+   saúde). Se a rede cair, o evento fica aqui e o botão pode ser repetido: o Canteiro aceita o mesmo resultado duas vezes.
+
+O token nunca é gravado em log nem mostrado de volta. Endereço sem https só é aceito para `localhost`.
+
 ### Senha de acesso e exposição de rede
 
 ```bash
