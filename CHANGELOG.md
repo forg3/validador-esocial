@@ -2,6 +2,11 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 
+## [Unreleased]
+
+### Corrigido
+- Login falhava com "Origem nao autorizada": com `Referrer-Policy: no-referrer` o navegador envia `Origin: null`. A proteção CSRF agora aceita `Origin: null` só com `Sec-Fetch-Site` `same-origin` ou `none`, e rejeita `cross-site`/`same-site` e Origin de outro host.
+
 ## [1.4.0-alpha] - 2026-11-08
 
 ### Adicionado
