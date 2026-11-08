@@ -4,10 +4,10 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ## [Unreleased]
 
+## [1.4.0-alpha] - 2026-11-08
+
 ### Corrigido
 - Login falhava com "Origem nao autorizada": com `Referrer-Policy: no-referrer` o navegador envia `Origin: null`. A proteção CSRF agora aceita `Origin: null` só com `Sec-Fetch-Site` `same-origin` ou `none`, e rejeita `cross-site`/`same-site` e Origin de outro host.
-
-## [1.4.0-alpha] - 2026-11-08
 
 ### Adicionado
 - Integração opcional com o Canteiro Prime (PR #6): tela **Canteiro Prime**, busca de CATs (S-2210) pendentes, assinatura e transmissão locais e devolução do recibo ou da rejeição. Configuração em `dados/canteiro.json` (permissão `0600`) ou `CANTEIRO_URL` e `CANTEIRO_TOKEN`.
