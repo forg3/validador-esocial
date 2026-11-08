@@ -386,7 +386,19 @@ func (s *Servidor) middlewareCSRF(next http.Handler) http.Handler {
 		// Limite global de corpo para qualquer escrita (achado M-02).
 		r.Body = http.MaxBytesReader(w, r.Body, 12<<20)
 
-		if origem := r.Header.Get("Origin"); origem != "" {
+		// Sec-Fetch-Site e definido pelo navegador e nao pode ser forjado por script de outro site.
+		if sfs := r.Header.Get("Sec-Fetch-Site"); sfs != "" && sfs != "same-origin" && sfs != "none" {
+			http.Error(w, "Origem nao autorizada", http.StatusForbidden)
+			return
+		}
+		origem := r.Header.Get("Origin")
+		// Com Referrer-Policy no-referrer o navegador envia "Origin: null" ate em requisicao
+		// do proprio site; ali so Sec-Fetch-Site (same-origin/none) comprova a origem.
+		if origem == "null" && r.Header.Get("Sec-Fetch-Site") == "" {
+			http.Error(w, "Origem nao autorizada", http.StatusForbidden)
+			return
+		}
+		if origem != "" && origem != "null" {
 			if !mesmoHost(origem, r.Host) {
 				http.Error(w, "Origem nao autorizada", http.StatusForbidden)
 				return
