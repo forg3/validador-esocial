@@ -42,13 +42,19 @@ jobs:
           version: '~> v2'
           args: check
 
+      - name: Texto da release (trecho do CHANGELOG)
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          awk -v v="$v" '/^## \[/{f=index($0,"["v"]")>0; next} f' CHANGELOG.md > /tmp/notas.md
+          [ -s /tmp/notas.md ] || echo "Veja o CHANGELOG.md." > /tmp/notas.md
+
       - name: Compilar, empacotar e publicar
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
           version: '~> v2'
           args: >-
-            release --clean
+            release --clean --release-notes=/tmp/notas.md
             ${{ (github.event_name == 'workflow_dispatch' && inputs.snapshot == 'true') && '--snapshot' || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
