@@ -1,293 +1,106 @@
 # Validador eSocial
 
 <p align="center">
-  <img src="internal/web/static/img/validador-logo-oficial-cropped.png" alt="Validador eSocial" width="380">
+  <img src="internal/web/static/img/validador-logo-oficial-cropped.png" alt="Validador eSocial" width="320">
 </p>
 
-[![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue.svg)](LICENSE)
-[![FOSS](https://img.shields.io/badge/FOSS-Free%20%26%20Open%20Source-green.svg)](https://en.wikipedia.org/wiki/Free_and_open-source_software)
-[![Open Source](https://img.shields.io/badge/Open%20Source-%E2%99%A5-orange.svg)](https://opensource.org/)
-[![Go](https://img.shields.io/badge/Go-1.26+-00ADD8.svg?logo=go&logoColor=white)](https://golang.org/)
-[![HTMX](https://img.shields.io/badge/HTMX-2.0+-336699.svg)](https://htmx.org/)
-[![eSocial](https://img.shields.io/badge/eSocial-Leiaute%20S--1.3-005CA9.svg)](https://www.gov.br/esocial/pt-br/documentacao-tecnica)
+[![Licença MIT](https://img.shields.io/github/license/forg3/validador-esocial)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/forg3/validador-esocial?include_prereleases)](https://github.com/forg3/validador-esocial/releases)
+[![Go](https://img.shields.io/github/go-mod/go-version/forg3/validador-esocial)](go.mod)
 
-Software web livre, leve e direto para elaboração, validação estrutural (XSD) e assinatura digital (XMLDSig A1) dos eventos do **eSocial** (versão S-1.3), com execução local e autenticação obrigatória.
+Programa livre e gratuito que roda no seu computador para **gerar** eventos do eSocial (leiaute S-1.3), **validar** o XML contra os XSD oficiais, **assinar** com e-CNPJ ou e-CPF A1 e **transmitir** ao webservice do governo. Cobre S-1000, S-1005, S-2200, S-2210, S-2220 e S-2240. Os dados e o certificado ficam na sua máquina.
 
-> **Estado atual (após o pente fino de 26/09/2026):** a assinatura com certificado A1 é **real quando a senha do certificado é informada** na fila (sem senha, o envelope é simulado e marcado como tal). O envio ao webservice oficial fica em **modo simulado por padrão** e só é real no modo "Real" em Certificado & Empresa. **Em 28/09/2026 o ciclo real foi conferido na Produção Restrita com e-CNPJ A1 do ICP-Brasil**: S-1000 aceito com recibo e S-2220 aprovado no esquema e na assinatura (teste `go test -tags restrita ./internal/soap/`). Não use comprovantes simulados para cumprimento de obrigação acessória. Relatório: [`docs/security-audit/pente-fino-2026-09-26.md`](docs/security-audit/pente-fino-2026-09-26.md).
+![Tela principal do Validador eSocial](docs/img/tela-principal.png)
 
----
+*Painel inicial, com banco vazio.*
 
-## O que é
+## Para quem
 
-O **Validador eSocial** é uma aplicação web autônoma e portátil desenvolvida em Go e HTMX, concebida para que empresas, contadores, clínicas de SST e engenheiros de segurança possam manipular, validar e transmitir eventos do eSocial diretamente ao governo federal (gov.br), sem a necessidade de softwares proprietários caros, plataformas engessadas ou assinaturas corporativas complexas.
+- **Técnicos e engenheiros de segurança do trabalho (TST/SESMT):** CAT (S-2210) e condições ambientais (S-2240) sem depender do sistema de folha.
+- **Clínicas e médicos do trabalho:** ASO (S-2220).
+- **RH, DP e contabilidade:** cadastro do empregador, estabelecimentos e admissão (S-1000, S-1005, S-2200), com conferência de XSD antes do envio.
+- **Desenvolvedores:** código em Go, binário único, sem banco externo; leiautes e tabelas oficiais embutidos.
 
-## Como usar
+## Instalação
 
-### Modo 1: Execução Nativa Portátil (Sem Instalar Nada)
+Baixe o pacote da [última release](https://github.com/forg3/validador-esocial/releases/latest) e confira o `SHA256SUMS`.
 
-Você **não precisa ter o Go instalado** e não precisa de banco de dados ou dependências externas. O aplicativo é distribuído como um binário nativo único e auto-contido. Ao ser iniciado, **abre automaticamente o seu navegador** no painel local:
+| Sistema | Arquivo | Como abrir |
+| :-- | :-- | :-- |
+| Linux (x86_64) | `.tar.gz`, `.deb` ou `.rpm` | extrair e rodar `./validador-esocial`, ou `sudo dpkg -i` / `sudo rpm -i` |
+| Windows (x86_64) | `.zip` ou `.msi` | rodar `validador-esocial.exe` ou instalar o `.msi` |
+| macOS Apple Silicon | `darwin-arm64.tar.gz` | extrair e rodar o binário |
+| macOS Intel | `darwin-amd64.tar.gz` | extrair e rodar o binário |
 
-1. Acesse a página de [Releases](https://github.com/forg3/validador-esocial/releases/tag/v1.3-alpha).
-2. Baixe o pacote correspondente ao seu sistema operacional:
-   - **Windows (x86_64):** Extraia o arquivo `.zip` e execute `validador-esocial.exe`.
-   - **macOS Apple Silicon (M1 / M2 / M3 / M4 / M5 / M6+):** Baixe `validador-esocial-1.3-alpha-darwin-arm64.tar.gz`, extraia e execute `./validador-esocial-darwin-arm64`.
-   - **macOS Intel (x86_64):** Baixe `validador-esocial-1.3-alpha-darwin-amd64.tar.gz`, extraia e execute `./validador-esocial-darwin-amd64`.
-   - **Linux (x86_64):** Baixe `validador-esocial-1.3-alpha-linux-amd64.tar.gz`, extraia e execute `./validador-esocial`.
-3. O navegador será iniciado automaticamente em `http://localhost:8000`.
+No macOS, se o sistema bloquear o binário, libere em Ajustes do Sistema, Privacidade e Segurança. Também há imagem de container: `ghcr.io/forg3/validador-esocial`.
 
-### Modo 2: A Partir do Código-Fonte (Para Desenvolvedores)
-
-Se desejar compilar diretamente:
+A partir do código-fonte (Go 1.26 ou superior):
 
 ```bash
-# Clone o repositório
 git clone https://github.com/forg3/validador-esocial.git
 cd validador-esocial
-
-# Inicie o serviço diretamente (porta padrão 8000)
-go run cmd/server/main.go
+go run ./cmd/server
 ```
 
-Acesse a interface no navegador em `http://localhost:8000` e informe a **senha local** exibida no terminal na
-primeira execução (ela fica salva com hash em `dados/auth.json`, permissão `0600`).
+O programa escuta só em `127.0.0.1:8000` e abre o navegador. A senha local é exibida no terminal na primeira execução (ou defina com `-senha` ou `ESOCIAL_SENHA`). A validação por XSD usa o `xmllint` (pacote `libxml2-utils` no Linux); sem ele a interface avisa que a conferência ficou degradada.
 
-### Instalação por pacote
+## Uso em 5 passos
 
-```bash
-# Debian/Ubuntu (.deb)
-sudo dpkg -i validador-esocial_1.3-alpha_linux_amd64.deb
+1. Abra `http://localhost:8000` e entre com a senha local.
+2. Em **Empresas e Certificados**, cadastre a empresa e carregue o certificado A1 (`.pfx` ou `.p12`).
+3. Em **Catálogo** ou **Novo Evento**, preencha o evento; o XML S-1.3 é gerado e validado contra o XSD.
+4. Na **Fila de Transmissão**, assine informando a senha do certificado.
+5. Em **Certificado & Empresa**, escolha o ambiente (produção restrita ou produção) e o modo **Real**; transmita e consulte o recibo.
 
-# Fedora/RHEL/openSUSE (.rpm)
-sudo rpm -i validador-esocial_1.3-alpha_linux_amd64.rpm
+O modo padrão é **simulado**: nada é enviado ao governo, a assinatura é marcada como simulada e nenhum recibo é gerado. Para outro endpoint, use `ESOCIAL_WS_ENVIO` e `ESOCIAL_WS_CONSULTA`.
 
-# Windows: execute o instalador .msi (cria atalhos no Menu Iniciar e na Área de Trabalho)
-#   validador-esocial-1.3.0-windows-amd64.msi
-```
+## Integração com o Canteiro Prime (opcional)
 
-Após instalar, execute `validador-esocial` (o atalho no Windows). O binário é auto-contido: cria o banco SQLite em
-`./dados`, sobe o servidor em `127.0.0.1:8000` e abre o navegador. A senha local de acesso é exibida no terminal na
-primeira execução (ou defina com `-senha` / `ESOCIAL_SENHA`).
+Quem usa o [Canteiro Prime](https://www.laudix.com.br) pode enviar a CAT para este programa, que assina e transmite no computador que tem o certificado e devolve o recibo. O Canteiro nunca recebe o certificado.
 
-### Transmissão real ao eSocial (opcional)
-
-Por padrão o sistema opera em **modo simulado** (nada é enviado ao governo). Para habilitar o envio oficial:
-
-1. Carregue o certificado A1 em **Empresas e Certificados** (perfil ativo) ou em **Certificado & Empresa**.
-2. Em **Certificado & Empresa → Modo de transmissão ao eSocial**, selecione **Real** e aplique.
-3. Assine os eventos com o certificado e use **Transmitir** na fila, informando a senha do certificado no campo exibido.
-4. Use **Recibo** para consultar o processamento do lote e gravar o número de recibo oficial.
-
-Para apontar para um proxy/homologação, defina `ESOCIAL_WS_ENVIO` e `ESOCIAL_WS_CONSULTA`.
-
-### Canteiro Prime: CAT (S-2210) do assinante
-
-O Canteiro Prime gera a CAT e a deixa numa fila. Este programa, no computador que tem o certificado, busca a CAT,
-assina, transmite e devolve o recibo (ou o erro). O Canteiro nunca recebe o certificado.
-
-1. No Canteiro Prime, abra `/esocial/agente`, dê um nome ao agente (ex.: "Notebook do RH") e clique em **Criar token**.
-   Copie na hora: ele não aparece de novo.
+1. No Canteiro Prime, em `/esocial/agente`, crie um token e copie na hora.
 2. Na ocorrência, gere a CAT e clique em **Enviar ao agente local**.
-3. Aqui, abra **Canteiro Prime** no menu, cole o endereço (https://...) e o token e salve. Ficam em `dados/canteiro.json`
-   (permissão `0600`). Alternativa: variáveis `CANTEIRO_URL` e `CANTEIRO_TOKEN`, que têm precedência.
-4. Clique em **Buscar CATs pendentes**. Só entram eventos do mesmo ambiente configurado aqui (restrita ou produção).
-5. Para cada CAT: **Validar**, **Assinar** (senha do A1), **Transmitir** e, se preciso, **Consultar recibo**.
-6. Clique em **Enviar resultado ao Canteiro**. Com recibo ou rejeição entregues, o XML é apagado da fila local (é dado de
-   saúde). Se a rede cair, o evento fica aqui e o botão pode ser repetido: o Canteiro aceita o mesmo resultado duas vezes.
+3. Aqui, abra **Canteiro Prime**, cole o endereço (https) e o token. Ficam em `dados/canteiro.json` (permissão `0600`); `CANTEIRO_URL` e `CANTEIRO_TOKEN` têm precedência.
+4. **Buscar CATs pendentes**, depois validar, assinar, transmitir e **Enviar resultado ao Canteiro**.
 
-O token nunca é gravado em log nem mostrado de volta. Endereço sem https só é aceito para `localhost`.
+Sem a integração, o programa funciona do mesmo jeito. Endereço sem https só é aceito para `localhost`.
 
-### Senha de acesso e exposição de rede
+## Segurança e privacidade
 
-```bash
-# Define a senha de acesso manualmente
-go run cmd/server/main.go -senha "MINHA_SENHA_FORTE"
-# ou
-ESOCIAL_SENHA="MINHA_SENHA_FORTE" go run cmd/server/main.go
+- O certificado e a senha dele nunca saem do computador; a senha é pedida a cada assinatura e não é gravada.
+- Sem telemetria: as únicas conexões de saída são ao webservice do eSocial (modo Real) e ao Canteiro Prime, se você configurar.
+- Banco SQLite local com `secure_delete` ligado, arquivos com permissão `0600`. Após a entrega do recibo, o XML da CAT é apagado da fila local, por ser dado de saúde.
+- Acesso por senha, sessão `HttpOnly` e `SameSite=Strict`, anti-CSRF, validação de `Host`, limites de upload e limite de tentativas de login.
+- Relatórios: [pente fino e pentest](docs/security-audit/pente-fino-2026-09-26.md) e [auditoria de segurança](docs/security-audit/relatorio-auditoria-seguranca.pdf). Para reportar falhas, veja [SECURITY.md](SECURITY.md).
 
-# Expõe na rede (use apenas com TLS/proxy reverso e senha forte)
-go run cmd/server/main.go -host 0.0.0.0 -senha "MINHA_SENHA_FORTE"
-```
+## Limitações conhecidas
 
-A aplicação escuta **somente em `127.0.0.1` por padrão**. Todas as rotas exigem sessão autenticada
-(cookie `HttpOnly` + `SameSite=Strict`), requisições de escrita exigem token anti-CSRF, o cabeçalho `Host`
-é validado contra a allowlist local (anti DNS rebinding), há limite de tamanho para uploads e rate limit
-nas tentativas de login e de validação da senha do certificado.
+- Fase **alpha**. O ciclo S-1000, S-1005, S-2200 e S-2220 foi aceito com recibo na Produção Restrita (28/09/2026) com e-CNPJ A1; S-2210 e S-2240 usam o mesmo caminho, mas não têm o mesmo registro de teste real.
+- Eventos de SST exigem o trabalhador já cadastrado no eSocial (S-2200).
+- Certificado A3 (token ou smartcard) só em build dedicada: `go build -tags pkcs11 ./cmd/server`; falta validação com token físico.
+- Não é sistema de folha: não calcula holerite, encargos nem rescisão.
+- Não substitui a responsabilidade técnica do profissional habilitado sobre laudos (LTCAT, PGR, PCMSO) e CAT.
+- O [catálogo de 36 eventos](docs/eventos.md) lista todos; só os seis acima têm gerador validado contra o XSD.
+- Não use comprovantes do modo simulado para cumprir obrigação acessória.
 
----
+## Contribuir
 
-## Pente fino e pentest (v1.2-alpha)
+Veja [CONTRIBUTING.md](CONTRIBUTING.md). Abra uma issue antes de mudanças grandes. Respondemos em até 48 horas úteis, sem SLA. Histórico de versões em [CHANGELOG.md](CHANGELOG.md).
 
-Revisão de todo o código com `go vet`, `staticcheck`, `gosec` e `govulncheck`, e teste dinâmico da instância
-rodando (acesso sem login, `Host` forjado, força bruta, CSRF, XXE, "billion laughs"): tudo bloqueado. Achados
-corrigidos: assinatura A1 real pela interface, ASO importado validado, evento rejeitado não é assinado, tabelas
-13/14/15/17/27 completas, nome fixo para o certificado enviado, `xmllint --nonet` e código formatado com `gofmt`.
-Relatório: [`docs/security-audit/pente-fino-2026-09-26.md`](docs/security-audit/pente-fino-2026-09-26.md).
+## Licença
 
----
+[MIT](LICENSE).
 
-## Segurança (v1.1-alpha)
+## Como citar
 
-Esta release incorpora uma auditoria de segurança completa (5 categorias: isolamento/controle de acesso, permissões,
-IDOR, segredos expostos e XSS) com **todos os achados corrigidos** — o relatório está em
-[`docs/security-audit/relatorio-auditoria-seguranca.pdf`](docs/security-audit/relatorio-auditoria-seguranca.pdf).
+> Laudix Engenharia e Inovação. *Validador eSocial* (versão 1.4.0-alpha) [software]. 2026. https://github.com/forg3/validador-esocial
 
-**Correções aplicadas**
+Metadados em [CITATION.cff](CITATION.cff).
 
-- **Autenticação obrigatória**: senha local (hash com salt, 100k iterações), sessão em cookie `HttpOnly` +
-  `SameSite=Strict`, tela de login e logout. Escuta padrão apenas em `127.0.0.1` (flag `-host` para expor).
-- **Anti-CSRF**: token em todos os formulários e no cabeçalho `X-CSRF-Token` das requisições HTMX, com validação de
-  `Origin`/`Referer` em todo método de escrita.
-- **Anti DNS rebinding**: validação do cabeçalho `Host` contra allowlist local.
-- **Fim da assinatura/recibo falsos**: o fluxo simulado é rotulado (`MODO SIMULAÇÃO` na interface, `ASSINATURA SIMULADA`
-  no XML, status `simulado`) e **nenhum protocolo ou recibo oficial é gerado** sem transmissão real.
-- **XSS/HTML injection**: saída do teste de certificado migrada para `html/template` (escaping contextual).
-- **XML injection**: escape e validação de domínio (datas ISO, hora HHMM, UF oficial, códigos controlados) em todos os
-  campos dos geradores de eventos.
-- **Limites de entrada**: 2 MB (certificado), 5 MB (XML), 10 MB (CSV) e 12 MB por requisição de escrita.
-- **Validação por schema real**: `xmllint` + XSD oficiais embutidos, com modo degradado informado ao usuário.
-- **Rate limit**: 8 tentativas/minuto no login e 6/minuto na validação da senha do certificado A1.
-- **Hardening**: banco e certificados com permissão `0600` (diretórios `0700`), container sem privilégios (UID 10001),
-  cabeçalhos CSP/`X-Content-Type-Options`/`X-Frame-Options`/`Referrer-Policy`, erros de persistência reportados ao usuário.
+## English summary
 
-**Melhorias**
-
-- **Sprint 6 (certificados A3 / PKCS#11)**: driver PKCS#11 sob a tag de build `pkcs11`, com seleção de módulo/slot/PIN na
-  interface, leitura do certificado do token e assinatura delegada ao hardware (a chave privada nunca sai do dispositivo).
-- **Sprint 1 (conformidade de leiaute)**: os geradores dos eventos S-2210 (CAT), S-2220 (ASO) e S-2240 (condições ambientais) foram reescritos para o leiaute oficial S-1.3 (`ideVinculo`, `agNoc`, `epcEpi`/`epiCompl`, `respReg`, CAT completa com `codSitGeradora`/`iniciatCAT`/`localAcidente`/`parteAtingida`/`agenteCausador`/`atestado` e ASO com `exMedOcup`/`aso`/`exame`/`medico`).
-- Filtro e contador de eventos `simulado` na fila de transmissão.
-- Mensagens de validação passam a informar exatamente o modo executado e o que divergiu.
-- Senha de acesso definível por `-senha` ou `ESOCIAL_SENHA`, com geração automática na primeira execução.
-- Suíte de testes ampliada com 13 testes de regressão de segurança (`internal/web/seguranca_test.go`).
+Validador eSocial is free, MIT-licensed software that runs on your own computer to generate, validate (against the official XSD), sign (ICP-Brasil A1 e-CNPJ/e-CPF certificates) and transmit Brazilian eSocial events S-1000, S-1005, S-2200, S-2210, S-2220 and S-2240 (layout S-1.3). Data and certificates never leave your machine; there is no telemetry. It targets occupational safety technicians, HR, accountants and developers. The UI is in Portuguese. Install from the [releases](https://github.com/forg3/validador-esocial/releases) (Linux, Windows, macOS) or run `go run ./cmd/server`. Status: alpha. Issues are answered within 48 business hours, with no SLA.
 
 ---
 
-## Versão e Releases
-
-**Versão Atual:** `v1.3-alpha` (primeira **testada com e-CNPJ A1 real na Produção Restrita**: S-1000 → S-1005 → S-2200 → S-2220 aceitos com recibo; release anterior com **assinatura A1 real pela interface**, **tabelas oficiais completas**, **correções de segurança**, **leiautes S-1.3 aderentes ao XSD oficial**, **relatórios de auditoria de retorno**, **múltiplos certificados/procurações** e **transmissão real opcional** ao webservice oficial, para testes de conformidade com Leiaute S-1.3 NT 07/2026).  
-Download dos binários pré-compilados portáteis para Linux, Windows e macOS na aba [Releases](https://github.com/forg3/validador-esocial/releases/tag/v1.3-alpha).
-
----
-
-## O que faz
-
-- **Cobertura Integral dos 36 Eventos Oficiais**: Catálogo visual estruturado por departamento (SESMT, Medicina Ocupacional, RH/DP, Folha, Jurídico e RPPS) e editor guiado com sincronização em tempo real com o XML S-1.3.
-- **Validação Estrutural Rígida**: Confere os arquivos XML diretamente contra os esquemas XSD oficiais do leiaute S-1.3 (via `xmllint`, com modo degradado explicitamente informado quando a ferramenta não está instalada). Os documentos gerados para **S-1000, S-1005, S-2200, S-2210, S-2220 e S-2240 são aprovados pelo schema oficial** — verificado por teste automatizado que executa o `xmllint` contra os XSD embutidos.
-- **Importação e Conferência de XML/CSV**: Recebe arquivos XML (como ASO), valida contra o XSD na entrada (o que não passa entra como **rejeitado**, com o motivo) e realiza importação de colaboradores em lote via CSV com modelo pronto para download.
-- **Tabelas oficiais do eSocial embutidas e completas** (leiaute S-1.3, NT 07/2026): Tabela 13 (parte do corpo atingida, 45 itens), Tabela 14 (agente causador, 248), Tabela 15 (situação geradora, 60), Tabela 17 (natureza da lesão, 29), Tabela 24 (agentes nocivos) e Tabela 27 (procedimentos diagnósticos, 1.450), disponíveis como listas nos formulários — sem digitação de códigos.
-- **Assinatura Digital Local (A1)**: Assina eventos com certificado digital ICP-Brasil **A1** (`.pfx` / `.p12`) diretamente na máquina do usuário (`internal/crypto`, XMLDSig + C14N). Pela fila, a assinatura é **real quando a senha do certificado é informada** (avulsa ou em lote); sem senha, o envelope é **explicitamente marcado como simulado** (`ASSINATURA SIMULADA`), sem validade jurídica. Evento rejeitado ou não validado nunca é assinado: toda assinatura revalida o XML antes.
-- **Auditoria de Eventos**: Rastreamento do ciclo de vida (`pronto` → `assinado` → `simulado` → `transmitido` → `aceito`/`rejeitado`), com registro de recibo e mensagens oficiais.
-- **Relatórios e Auditoria de Retorno (S-5001/S-5011)**: importação dos totalizadores devolvidos pelo eSocial, consolidação por período (previdenciário, FGTS e IRRF), memórias de cálculo por trabalhador e exportação em CSV.
-- **Múltiplas Empresas e Procurações**: perfis por CNPJ com certificado A1 próprio, dados do procurador eletrônico e ativação com sincronização automática do empregador emissor.
-- **Transmissão Real Opcional**: modo **Real** envia os lotes assinados ao webservice oficial do eSocial via mTLS (`EnviarLoteEventos`) e consulta os recibos (`ConsultarLoteEventos`), com senha do certificado solicitada a cada envio e nunca armazenada.
-
----
-
-- [x] **Pente fino e pentest (v1.2-alpha)**: assinatura A1 real pela fila, validação na importação, tabelas 13/14/15/17/27 completas e relatório em `docs/security-audit/pente-fino-2026-09-26.md`.
-- [x] **Teste com certificado A1 real em Produção Restrita (28/09/2026, v1.3-alpha)**: fluxo S-1000 → S-1005 → S-2200 → S-2220 aceito com recibo em todos os eventos. O teste real corrigiu o que o simulador não pegava: leitura de `.pfx` em BER (formato comum do A1 do ICP-Brasil), renegociação TLS pedida pelo servidor do eSocial, Id do evento com zeros à direita (raiz do CNPJ + 000000), `ideEmpregador` com a raiz do CNPJ, assinatura com `Reference URI=""` sobre o documento inteiro, namespace/SOAPAction da consulta (`retornoProcessamento`) e grupo do lote por tipo de evento (1 tabelas, 2 não periódicos, 3 periódicos).
-- [x] **Leiautes S-1.3 aderentes ao XSD oficial (Sprint 1)**: geradores de S-2210, S-2220 e S-2240 reescritos conforme o leiaute oficial, com tabelas 13/14/15/17/27 embutidas e validação por schema aprovada nos testes de regressão.
-- [x] **Auditoria de Segurança e Hardening (v1.1-alpha)**: autenticação obrigatória, anti-CSRF, validação de Host, limites de entrada, rate limit, cabeçalhos de segurança e relatório de auditoria publicado em `docs/security-audit/`.
-- [x] **Publicação de Packages (GitHub Packages)**: Imagem de container publicada no GitHub Container Registry (`ghcr.io/forg3/validador-esocial:v1.3-alpha`).
-- [x] **Pacotes de Distribuição (.deb, .rpm e MSI)**: instaladores nativos gerados pelo pipeline de release (GoReleaser para `.deb`/`.rpm`/`.tar.gz`/`.zip` e WiX Toolset para o `.msi` do Windows).
-- [x] **Pipeline de CI/CD para Releases**: workflow `release.yml` executa build, `go vet`, testes, compilação cruzada (linux/darwin/windows em amd64 e arm64), pacotes `.deb`/`.rpm`, instalador `.msi`, checksums SHA-256 e publicação automática na release — além da imagem de container no GHCR.
-- [~] **Suporte a Certificados A3 (Tokens USB e Smartcards via PKCS#11)**: implementado e habilitável por build
-  (`go build -tags pkcs11 ./cmd/server`) — a chave privada permanece no token e a assinatura é delegada ao hardware.
-  A validação final depende de um token físico (não executável em ambiente de CI).
-- [x] **Módulo de Relatórios e Auditoria de Retorno**: importação dos totalizadores S-5001/S-5011, consolidação por período (previdenciário/FGTS/IRRF), memórias de cálculo e exportação CSV.
-- [x] **Múltiplos Certificados e Procurações Eletrônicas**: perfis multiempresa com certificado A1 por CNPJ, dados do procurador eletrônico e ativação sincronizada.
-
----
-
-## O que não faz
-
-- **Transmissão real exige certificado A1 válido**: o envio oficial (mTLS + `EnviarLoteEventos`/`ConsultarLoteEventos`) foi conferido na Produção Restrita com e-CNPJ real. Eventos de SST (S-2210/S-2220/S-2240) exigem o trabalhador já cadastrado no eSocial (S-2200) — em produção isso normalmente vem da folha; para testes, o projeto gera S-1005 e S-2200. O modo padrão continua **simulado**, com aviso na interface.
-- **Certificados A3 exigem build dedicada**: o suporte a token/smartcard via PKCS#11 está implementado, mas não é
-  incluído na build padrão (que aceita certificados **A1** em `.pfx`/`.p12`). Para habilitar, compile com
-  `go build -tags pkcs11 ./cmd/server` e informe o módulo PKCS#11 do fabricante na tela **Certificado & Empresa**.
-- **Não é um ERP de Folha de Pagamento**: Não calcula holerites, encargos sindicais complexos, horas extras ou rescisões trabalhistas. O software opera sobre os dados brutos necessários para a geração do evento.
-- **Não armazena chaves privadas em nuvem**: Em implantações corporativas multiusuário, o sistema não transfere certificados A1 para repositórios desprotegidos.
-- **Não substitui a responsabilidade técnica legal**: O preenchimento e a validação de laudos (LTCAT, PGR, PCMSO) e CATs continuam sendo atribuições formais dos profissionais habilitados (Médicos do Trabalho, Engenheiros e Técnicos de Segurança, e Contadores).
-
----
-
-## Matriz Completa de Eventos do eSocial (Leiaute S-1.3)
-
-O eSocial é composto por **36 eventos** organizados por competência técnica e departamento responsável:
-
-### 🛡️ SESMT & Engenharia de Segurança do Trabalho
-| Evento | Nome do Evento | Categoria | Prazo Legal (MOS S-1.3) |
-| :--- | :--- | :--- | :--- |
-| **S-1005** | Tabela de Estabelecimentos, Obras ou Unidades | Tabelas | Até dia 15 do mês seguinte ao início ou alteração |
-| **S-2210** | Comunicação de Acidente de Trabalho (CAT) | Não Periódico | 1º dia útil seguinte; imediato em caso de morte |
-| **S-2240** | Condições Ambientais do Trabalho - Agentes Nocivos | Não Periódico | Até dia 15 do mês subsequente à admissão/alteração |
-
-### 🩺 Clínicas de Medicina Ocupacional (SST)
-| Evento | Nome do Evento | Categoria | Prazo Legal (MOS S-1.3) |
-| :--- | :--- | :--- | :--- |
-| **S-2220** | Monitoramento da Saúde do Trabalhador (ASO) | Não Periódico | Até dia 15 do mês subsequente à emissão do exame |
-
-### 👥 Recursos Humanos & Departamento Pessoal (RH / DP)
-| Evento | Nome do Evento | Categoria | Prazo Legal (MOS S-1.3) |
-| :--- | :--- | :--- | :--- |
-| **S-2190** | Registro Preliminar de Trabalhador | Não Periódico | Até o final do dia anterior ao início da prestação |
-| **S-2200** | Cadastramento Inicial do Vínculo e Admissão | Não Periódico | Até dia 15 do mês seguinte (ou dia anterior ao início) |
-| **S-2205** | Alteração de Dados Cadastrais do Trabalhador | Não Periódico | Até dia 15 do mês subsequente à alteração |
-| **S-2206** | Alteração de Contrato de Trabalho | Não Periódico | Até dia 15 do mês subsequente à alteração |
-| **S-2230** | Afastamento Temporário | Não Periódico | Conforme motivo (dia 15 do mês subsequente ou até 16º dia) |
-| **S-2231** | Cessão / Exercício em Outro Órgão | Não Periódico | Até dia 15 do mês subsequente |
-| **S-2298** | Reintegração / Outros Provimentos | Não Periódico | Até dia 15 do mês subsequente |
-| **S-2299** | Desligamento | Não Periódico | Até 10 dias após o término ou dia 15 |
-| **S-2300** | Trabalhador Sem Vínculo de Emprego - Início | Não Periódico | Até dia 15 do mês subsequente ao início |
-| **S-2306** | Trabalhador Sem Vínculo de Emprego - Alteração | Não Periódico | Até dia 15 do mês subsequente à alteração |
-| **S-2399** | Trabalhador Sem Vínculo de Emprego - Término | Não Periódico | Até dia 15 do mês subsequente |
-| **S-3000** | Exclusão de Eventos | Não Periódico | Sempre que houver necessidade de cancelamento |
-
-### 💰 Contabilidade, Fiscal & Folha de Pagamento
-| Evento | Nome do Evento | Categoria | Prazo Legal (MOS S-1.3) |
-| :--- | :--- | :--- | :--- |
-| **S-1000** | Informações do Empregador / Contribuinte | Tabelas | Antes de qualquer outro evento |
-| **S-1010** | Tabela de Rubricas da Folha de Pagamento | Tabelas | Antes do envio dos eventos de remuneração |
-| **S-1020** | Tabela de Lotações Tributárias | Tabelas | Antes dos eventos de remuneração |
-| **S-1200** | Remuneração de Trabalhador vinculado ao RGPS | Periódico | Até dia 15 do mês subsequente à competência |
-| **S-1210** | Pagamentos de Rendimentos do Trabalho | Periódico | Até dia 15 do mês subsequente ao pagamento |
-| **S-1260** | Comercialização da Produção Rural Pessoa Física | Periódico | Até dia 15 do mês subsequente |
-| **S-1270** | Contratação de Avulsos Não Portuários | Periódico | Até dia 15 do mês subsequente |
-| **S-1280** | Informações Complementares aos Periódicos | Periódico | Até dia 15 do mês subsequente |
-| **S-1298** | Reabertura dos Eventos Periódicos | Periódico | Quando houver retificação necessária |
-| **S-1299** | Fechamento dos Eventos Periódicos | Periódico | Até dia 15 do mês subsequente |
-
-### ⚖️ Jurídico & Contencioso
-| Evento | Nome do Evento | Categoria | Prazo Legal (MOS S-1.3) |
-| :--- | :--- | :--- | :--- |
-| **S-1070** | Tabela de Processos Administrativos e Judiciais | Tabelas | Antes dos eventos que utilizem o processo |
-| **S-8200** | Anotação Judicial do Vínculo | Não Periódico | Conforme determinação judicial |
-
-### 🏛️ Setor Público & Regime Próprio (RPPS)
-| Evento | Nome do Evento | Categoria | Prazo Legal (MOS S-1.3) |
-| :--- | :--- | :--- | :--- |
-| **S-1202** | Remuneração de Servidor vinculado ao RPPS | Periódico | Até dia 15 do mês subsequente |
-| **S-1207** | Benefícios - Entes Públicos | Periódico | Até dia 15 do mês subsequente |
-| **S-2400** | Cadastro de Beneficiário - Entes Públicos | Não Periódico | Até dia 15 do mês subsequente |
-| **S-2405** | Alteração de Dados Cadastrais do Beneficiário | Não Periódico | Até dia 15 do mês subsequente |
-| **S-2410** | Cadastro de Benefício - RPPS | Não Periódico | Até dia 15 do mês subsequente |
-| **S-2416** | Alteração do Benefício - RPPS | Não Periódico | Até dia 15 do mês subsequente |
-| **S-2418** | Reativação de Benefício - RPPS | Não Periódico | Até dia 15 do mês subsequente |
-| **S-2420** | Término do Benefício - RPPS | Não Periódico | Até dia 15 do mês subsequente |
-
----
-
-## Contribuições
-
-Este é um projeto **FOSS** (Free and Open-Source Software) regido pela **Licença MIT**. Contribuições de desenvolvedores, contadores, médicos do trabalho e engenheiros de segurança são calorosamente bem-vindas.
-
-Para contribuir:
-1. Abra uma *issue* no GitHub discutindo o problema ou a nova funcionalidade.
-2. Crie uma *branch* a partir da `main` (`feature/meu-recurso` ou `fix/ajuste-xsd`).
-3. Garanta que qualquer modificação estrutural de XML seja validada contra os esquemas XSD oficiais da versão vigente.
-4. Abra um *Pull Request* detalhado.
-
----
-
-## Autor
-
-**André Santo**  
-Contato e Repositório Oficial: [github.com/forg3](https://github.com/forg3)
+Mantido pela **[Laudix — Engenharia e Inovação](https://www.laudix.com.br)**. Página do projeto: [laudix.com.br/validador-esocial](https://www.laudix.com.br/validador-esocial.html).
